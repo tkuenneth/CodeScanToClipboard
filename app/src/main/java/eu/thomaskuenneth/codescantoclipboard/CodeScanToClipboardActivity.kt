@@ -5,22 +5,13 @@ import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.KeyEvent
-import android.view.View
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeCallback
@@ -29,10 +20,11 @@ import com.journeyapps.barcodescanner.DecoratedBarcodeView
 import com.journeyapps.barcodescanner.DefaultDecoderFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 
-class ZxingDemoActivity : ComponentActivity() {
+class CodeScanToClipboardActivity : ComponentActivity() {
 
     private lateinit var barcodeView: DecoratedBarcodeView
     private lateinit var clipboardManager: ClipboardManager
+    private lateinit var vibrator: Vibrator
 
     private val text = MutableStateFlow("")
 
@@ -46,7 +38,11 @@ class ZxingDemoActivity : ComponentActivity() {
     @SuppressLint("InflateParams")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         clipboardManager = getSystemService(android.content.ClipboardManager::class.java)
+        vibrator = getSystemService(Vibrator::class.java)
+
         val root = layoutInflater.inflate(R.layout.layout, null)
         barcodeView = root.findViewById(R.id.barcode_scanner)
         val formats = listOf(BarcodeFormat.QR_CODE, BarcodeFormat.CODE_39)
@@ -59,6 +55,7 @@ class ZxingDemoActivity : ComponentActivity() {
                 }
                 text.value = result.text
                     .also {
+                        vibrator.vibrate()
                         clipboardManager.copyToClipboard(it)
                     }
             }
@@ -66,7 +63,7 @@ class ZxingDemoActivity : ComponentActivity() {
         barcodeView.decodeContinuous(callback)
         setContent {
             with(text.collectAsStateWithLifecycle()) {
-                ZxingDemo(
+                CodeScanToClipboardScreen(
                     root = root,
                     value = value
                 )
@@ -91,25 +88,8 @@ class ZxingDemoActivity : ComponentActivity() {
     private fun ClipboardManager.copyToClipboard(text: String) {
         setPrimaryClip(ClipData.newPlainText("simple text", text))
     }
-}
 
-@Composable
-fun ZxingDemo(root: View, value: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        AndroidView(modifier = Modifier.fillMaxSize(),
-            factory = {
-                root
-            })
-        if (value.isNotBlank()) {
-            Text(
-                modifier = Modifier.padding(16.dp),
-                text = value,
-                color = Color.White,
-                style = MaterialTheme.typography.headlineMedium
-            )
-        }
+    private fun Vibrator.vibrate() {
+        vibrate(VibrationEffect.createOneShot(100L, VibrationEffect.DEFAULT_AMPLITUDE))
     }
 }
