@@ -1,6 +1,7 @@
 package eu.thomaskuenneth.codescantoclipboard
 
 import android.view.View
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -12,9 +13,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 
@@ -35,18 +36,26 @@ fun CodeScanToClipboardScreen(root: View, value: String) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues = it),
-                contentAlignment = Alignment.TopCenter
+                contentAlignment = Alignment.Center
             ) {
                 AndroidView(modifier = Modifier.fillMaxSize(), factory = {
                     root
                 })
                 if (value.isNotBlank()) {
                     Text(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(
+                                    alpha = 0.5F
+                                )
+                            )
+                            .padding(16.dp),
                         text = value,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         style = MaterialTheme.typography.headlineMedium,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
