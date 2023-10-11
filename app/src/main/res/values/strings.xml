@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Code Scan to Clipboard</string>
+    <string name="flash_on">Flash is on</string>
+    <string name="flash_off">Flash is off</string>
+    <string name="share">Share</string>
+    <string name="clear">Clear last scanned text</string>
 </resources>
