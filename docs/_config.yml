@@ -1,0 +1,7 @@
+theme: minima
+title: Code Scan To Clipboard
+description: A simple barcode and QR code scanner
+email: thomas@thomaskuenneth.eu
+author: Thomas Künneth
+header_pages:
+  - privacy.md
