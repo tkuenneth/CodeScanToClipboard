@@ -4,4 +4,5 @@
     <string name="flash_off">Flash is off</string>
     <string name="share">Share</string>
     <string name="clear">Clear last scanned text</string>
+    <string name="scanner">Scanner</string>
 </resources>

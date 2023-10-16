@@ -23,6 +23,7 @@ import com.journeyapps.barcodescanner.BarcodeCallback
 import com.journeyapps.barcodescanner.BarcodeResult
 import com.journeyapps.barcodescanner.DecoratedBarcodeView
 import com.journeyapps.barcodescanner.DefaultDecoderFactory
+import eu.thomaskuenneth.codescantoclipboard.screen.CodeScanToClipboardScreen
 import kotlinx.coroutines.launch
 
 class CodeScanToClipboardActivity : ComponentActivity() {
@@ -49,7 +50,7 @@ class CodeScanToClipboardActivity : ComponentActivity() {
 
         val root = layoutInflater.inflate(R.layout.layout, null)
         val formats = listOf(BarcodeFormat.QR_CODE, BarcodeFormat.CODE_39)
-        barcodeView = root.findViewById<DecoratedBarcodeView?>(R.id.barcode_scanner)
+        barcodeView = root.findViewById(R.id.barcode_scanner)
         with(barcodeView) {
             decoderFactory = DefaultDecoderFactory(formats)
             initializeFromIntent(intent)
