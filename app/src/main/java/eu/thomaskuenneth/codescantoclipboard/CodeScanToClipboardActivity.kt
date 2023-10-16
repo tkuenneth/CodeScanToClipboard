@@ -4,7 +4,10 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -15,6 +18,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -25,6 +29,8 @@ import com.journeyapps.barcodescanner.DecoratedBarcodeView
 import com.journeyapps.barcodescanner.DefaultDecoderFactory
 import eu.thomaskuenneth.codescantoclipboard.screen.CodeScanToClipboardScreen
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 
 class CodeScanToClipboardActivity : ComponentActivity() {
 
@@ -79,12 +85,26 @@ class CodeScanToClipboardActivity : ComponentActivity() {
                 }
             }
         }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.bitmap.collect {
+                    it?.run {
+                        val imageUri = saveBitmapAndGetUri(this@CodeScanToClipboardActivity, it)
+                        val chooserIntent2 = Intent.createChooser(Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_STREAM, imageUri)
+                            type = "text/png"
+                            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        }, null)
+                        startActivity(chooserIntent2)
+                    }
+                }
+            }
+        }
 
         setContent {
             CodeScanToClipboardScreen(
-                viewModel = viewModel,
-                root = root,
-                shareCallback = ::share
+                viewModel = viewModel, root = root, shareCallback = ::share
             )
         }
     }
@@ -120,4 +140,12 @@ class CodeScanToClipboardActivity : ComponentActivity() {
         val shareIntent = Intent.createChooser(sendIntent, null)
         startActivity(shareIntent)
     }
+}
+
+fun saveBitmapAndGetUri(context: Context, bitmap: Bitmap): Uri {
+    val file = File(context.externalCacheDir, "CodeScanToClipboard.png")
+    FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.PNG, 0, it) }
+    return FileProvider.getUriForFile(
+        context, "eu.thomaskuenneth.codescantoclipboard.fileprovider", file
+    )
 }

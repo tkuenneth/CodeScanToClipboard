@@ -6,4 +6,8 @@
     <string name="clear">Clear last scanned text</string>
     <string name="scanner">Scanner</string>
     <string name="creator">Creator</string>
+    <string name="width_in_pixel">Width in pixel</string>
+    <string name="height_in_pixel">Height in pixel</string>
+    <string name="code">Code</string>
+    <string name="generate">Generate</string>
 </resources>
