@@ -48,7 +48,7 @@ class CodeScanToClipboardActivity : ComponentActivity() {
         vibrator = getSystemService(Vibrator::class.java)
         val viewModel: CodeScanToClipboardViewModel by viewModels()
 
-        val root = layoutInflater.inflate(R.layout.layout, null)
+        val root = layoutInflater.inflate(R.layout.layout, null) as DecoratedBarcodeView
         val formats = listOf(BarcodeFormat.QR_CODE, BarcodeFormat.CODE_39)
         barcodeView = root.findViewById(R.id.barcode_scanner)
         with(barcodeView) {

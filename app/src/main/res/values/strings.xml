@@ -5,4 +5,5 @@
     <string name="share">Share</string>
     <string name="clear">Clear last scanned text</string>
     <string name="scanner">Scanner</string>
+    <string name="creator">Creator</string>
 </resources>

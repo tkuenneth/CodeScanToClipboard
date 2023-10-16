@@ -1,12 +1,12 @@
 package eu.thomaskuenneth.codescantoclipboard.screen
 
-import android.view.View
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -30,6 +30,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.journeyapps.barcodescanner.DecoratedBarcodeView
 import eu.thomaskuenneth.codescantoclipboard.CodeScanToClipboardViewModel
 import eu.thomaskuenneth.codescantoclipboard.IconButtonWithTooltip
 import eu.thomaskuenneth.codescantoclipboard.R
@@ -42,7 +43,7 @@ sealed class CodeScanToClipboardScreen(
 ) {
     companion object {
         val screens = listOf(
-            Scanner,
+            Scanner, Creator
         )
     }
 
@@ -51,13 +52,19 @@ sealed class CodeScanToClipboardScreen(
         R.string.scanner,
         Icons.Default.Camera
     )
+
+    object Creator : CodeScanToClipboardScreen(
+        "creator",
+        R.string.creator,
+        Icons.Default.Create
+    )
 }
 
 
 @Composable
 fun CodeScanToClipboardScreen(
     viewModel: CodeScanToClipboardViewModel,
-    root: View,
+    root: DecoratedBarcodeView,
     shareCallback: (String) -> Unit
 ) {
     MaterialTheme(
@@ -168,7 +175,7 @@ fun CodeScanToClipboardBottomBar(navController: NavHostController) {
 fun CodeScanToClipboardNavHost(
     navController: NavHostController,
     viewModel: CodeScanToClipboardViewModel,
-    root: View,
+    root: DecoratedBarcodeView,
     paddingValues: PaddingValues
 ) {
     NavHost(
@@ -179,8 +186,15 @@ fun CodeScanToClipboardNavHost(
             .padding(paddingValues = paddingValues)
     ) {
         composable(CodeScanToClipboardScreen.Scanner.route) {
+            root.resume()
             ScannerScreen(
                 root = root,
+                viewModel = viewModel,
+            )
+        }
+        composable(CodeScanToClipboardScreen.Creator.route) {
+            root.pause()
+            CreatorScreen(
                 viewModel = viewModel,
             )
         }

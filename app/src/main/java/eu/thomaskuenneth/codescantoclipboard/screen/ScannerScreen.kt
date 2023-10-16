@@ -30,9 +30,12 @@ fun ScannerScreen(
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        AndroidView(modifier = Modifier.fillMaxSize(), factory = {
-            root
-        })
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = {
+                root
+            },
+        )
         if (state.lastScannedText.isNotBlank()) {
             Text(
                 modifier = Modifier
