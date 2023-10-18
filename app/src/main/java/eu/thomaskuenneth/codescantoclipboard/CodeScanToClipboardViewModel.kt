@@ -65,9 +65,12 @@ class CodeScanToClipboardViewModel : ViewModel() {
         }
     }
 
-    private fun isWidthError() = with(_uiState.value.width) { !isDigitsOnly() || isEmpty() }
-    private fun isHeightError() = with(_uiState.value.height) { !isDigitsOnly() || isEmpty() }
+    fun isWidthError() = with(_uiState.value.width) { isNotInRange() }
+    fun isHeightError() = with(_uiState.value.height) { isNotInRange() }
     private fun isCodeError() = with(_uiState.value.code) { isEmpty() }
+    private fun String.isNotInRange() = isEmpty() || !isDigitsOnly() ||
+            with(toInt()) { this !in 200..800 }
+
     fun canGenerate() = !isWidthError() && !isHeightError() && !isCodeError()
 
     private val _bitmap = MutableStateFlow<Bitmap?>(null)

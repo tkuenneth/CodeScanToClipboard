@@ -1,5 +1,6 @@
 package eu.thomaskuenneth.codescantoclipboard.screen
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -34,38 +35,21 @@ fun CreatorScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            OutlinedTextField(
+            MyTextField(
                 value = width,
-                singleLine = true,
-                label = {
-                    Text(text = stringResource(id = R.string.width_in_pixel))
-                },
-                onValueChange = {
-                    viewModel.setWidth(it)
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-            OutlinedTextField(
+                resId = R.string.width_in_pixel,
+                message = if (viewModel.isWidthError()) stringResource(id = R.string.range_hint) else "",
+                onValueChange = { viewModel.setWidth(it) })
+            MyTextField(
                 value = height,
-                singleLine = true,
-                label = {
-                    Text(text = stringResource(id = R.string.height_in_pixel))
-                },
-                onValueChange = {
-                    viewModel.setHeight(it)
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-            OutlinedTextField(
+                resId = R.string.height_in_pixel,
+                message = if (viewModel.isHeightError()) stringResource(id = R.string.range_hint) else "",
+                onValueChange = { viewModel.setHeight(it) })
+            MyTextField(
                 value = code,
-                singleLine = true,
-                label = {
-                    Text(text = stringResource(id = R.string.code))
-                },
-                onValueChange = {
-                    viewModel.setCode(it)
-                },
-            )
+                resId = R.string.code,
+                message = if (code.isEmpty()) stringResource(id = R.string.cannot_be_empty) else "",
+                onValueChange = { viewModel.setCode(it) })
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = { viewModel.generate() },
@@ -75,4 +59,25 @@ fun CreatorScreen(
             }
         }
     }
+}
+
+@Composable
+fun MyTextField(
+    value: String,
+    @StringRes resId: Int,
+    onValueChange: (String) -> Unit,
+    message: String = "",
+    keyboardType: KeyboardType = KeyboardType.Number
+) {
+    OutlinedTextField(
+        value = value,
+        singleLine = true,
+        label = {
+            Text(text = stringResource(id = resId))
+        },
+        isError = message.isNotEmpty(),
+        supportingText = { Text(text = message) },
+        onValueChange = onValueChange,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType)
+    )
 }
