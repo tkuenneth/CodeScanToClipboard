@@ -2,6 +2,7 @@ package eu.thomaskuenneth.codescantoclipboard.screen
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -12,6 +13,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -60,9 +63,9 @@ sealed class CodeScanToClipboardScreen(
     )
 }
 
-
 @Composable
 fun CodeScanToClipboardScreen(
+    useNavigationRail: Boolean,
     viewModel: CodeScanToClipboardViewModel,
     root: DecoratedBarcodeView,
     shareCallback: (String) -> Unit
@@ -79,18 +82,44 @@ fun CodeScanToClipboardScreen(
                 )
             },
             bottomBar = {
-                CodeScanToClipboardBottomBar(
+                if (!useNavigationRail) CodeScanToClipboardBottomBar(
                     navController = navController
                 )
             }
         ) {
-            CodeScanToClipboardNavHost(
+            CodeScanToClipboardContent(
                 navController = navController,
+                useNavigationRail = useNavigationRail,
                 viewModel = viewModel,
                 root = root,
                 paddingValues = it
             )
         }
+    }
+}
+
+@Composable
+fun CodeScanToClipboardContent(
+    navController: NavHostController,
+    useNavigationRail: Boolean,
+    viewModel: CodeScanToClipboardViewModel,
+    root: DecoratedBarcodeView,
+    paddingValues: PaddingValues
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues = paddingValues)
+    ) {
+        if (useNavigationRail) CodeScanToClipboardNavigationRail(
+            navController = navController
+        )
+        CodeScanToClipboardNavHost(
+            navController = navController,
+            viewModel = viewModel,
+            root = root,
+            modifier = Modifier.weight(1.0F)
+        )
     }
 }
 
@@ -176,14 +205,12 @@ fun CodeScanToClipboardNavHost(
     navController: NavHostController,
     viewModel: CodeScanToClipboardViewModel,
     root: DecoratedBarcodeView,
-    paddingValues: PaddingValues
+    modifier: Modifier
 ) {
     NavHost(
         navController = navController,
         startDestination = CodeScanToClipboardScreen.Scanner.route,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues = paddingValues)
+        modifier = modifier
     ) {
         composable(CodeScanToClipboardScreen.Scanner.route) {
             root.resume()
@@ -196,6 +223,44 @@ fun CodeScanToClipboardNavHost(
             root.pause()
             CreatorScreen(
                 viewModel = viewModel,
+            )
+        }
+    }
+}
+
+@Composable
+fun CodeScanToClipboardNavigationRail(navController: NavHostController) {
+    NavigationRail {
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentDestination = navBackStackEntry?.destination
+        CodeScanToClipboardScreen.screens.forEach { screen ->
+            NavigationRailItem(
+                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                onClick = {
+                    navController.navigate(screen.route) {
+                        // Pop up to the start destination of the graph to
+                        // avoid building up a large stack of destinations
+                        // on the back stack as users select items
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        // Avoid multiple copies of the same destination when
+                        // reselecting the same item
+                        launchSingleTop = true
+                        // Restore state when reselecting a previously selected item
+                        restoreState = true
+                    }
+                },
+                label = {
+                    Text(text = stringResource(id = screen.label))
+                },
+                icon = {
+                    Icon(
+                        imageVector = screen.icon,
+                        contentDescription = stringResource(id = screen.label)
+                    )
+                },
+                alwaysShowLabel = true
             )
         }
     }

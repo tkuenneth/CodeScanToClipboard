@@ -18,6 +18,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -45,6 +48,7 @@ class CodeScanToClipboardActivity : ComponentActivity() {
             }
         }
 
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     @SuppressLint("InflateParams")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -103,8 +107,13 @@ class CodeScanToClipboardActivity : ComponentActivity() {
         }
 
         setContent {
+        val windowSizeClass = calculateWindowSizeClass(this)
+        val useNavigationRail = windowSizeClass.widthSizeClass > WindowWidthSizeClass.Compact
             CodeScanToClipboardScreen(
-                viewModel = viewModel, root = root, shareCallback = ::share
+                useNavigationRail = useNavigationRail,
+                viewModel = viewModel,
+                root = root,
+                shareCallback = ::share
             )
         }
     }
