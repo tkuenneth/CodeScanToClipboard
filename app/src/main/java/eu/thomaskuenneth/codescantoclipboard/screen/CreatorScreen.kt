@@ -39,13 +39,11 @@ fun CreatorScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            MyTextField(
-                value = width,
+            MyTextField(value = width,
                 resId = R.string.width_in_pixel,
                 message = if (viewModel.isWidthError()) stringResource(id = R.string.range_hint) else "",
                 onValueChange = { viewModel.setWidth(it) })
-            MyTextField(
-                value = height,
+            MyTextField(value = height,
                 resId = R.string.height_in_pixel,
                 message = if (viewModel.isHeightError()) stringResource(id = R.string.range_hint) else "",
                 onValueChange = { viewModel.setHeight(it) })
@@ -53,11 +51,12 @@ fun CreatorScreen(
                 value = code,
                 resId = R.string.code,
                 message = if (code.isEmpty()) stringResource(id = R.string.cannot_be_empty) else "",
-                onValueChange = { viewModel.setCode(it) })
+                onValueChange = { viewModel.setCode(it) },
+                keyboardType = KeyboardType.Ascii
+            )
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = { viewModel.generate() },
-                enabled = viewModel.canGenerate()
+                onClick = { viewModel.generate() }, enabled = viewModel.canGenerate()
             ) {
                 Text(text = stringResource(id = R.string.generate))
             }
@@ -73,8 +72,7 @@ fun MyTextField(
     message: String = "",
     keyboardType: KeyboardType = KeyboardType.Number
 ) {
-    OutlinedTextField(
-        value = value,
+    OutlinedTextField(value = value,
         singleLine = true,
         label = {
             Text(text = stringResource(id = resId))
