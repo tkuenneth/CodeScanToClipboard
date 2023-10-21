@@ -24,6 +24,7 @@ fun ScannerScreen(
     root: View,
     viewModel: CodeScanToClipboardViewModel,
 ) {
+    viewModel.setShowActions(showActions = true)
     val state by viewModel.uiState.collectAsState()
     Box(
         modifier = Modifier

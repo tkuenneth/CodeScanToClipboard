@@ -28,6 +28,7 @@ import eu.thomaskuenneth.codescantoclipboard.R
 fun CreatorScreen(
     viewModel: CodeScanToClipboardViewModel,
 ) {
+    viewModel.setShowActions(showActions = false)
     val state by viewModel.uiState.collectAsState()
     with(state) {
         Column(

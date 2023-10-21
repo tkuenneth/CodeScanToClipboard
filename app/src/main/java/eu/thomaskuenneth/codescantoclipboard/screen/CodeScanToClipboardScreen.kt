@@ -140,22 +140,24 @@ fun CodeScanToClipboardTopAppBar(
                 )
             },
             actions = {
-                IconButtonWithTooltip(
-                    onClick = { viewModel.toggleFlash() },
-                    painter = painterResource(id = if (flashOn) R.drawable.baseline_flash_on_24 else R.drawable.baseline_flash_off_24),
-                    contentDescription = stringResource(id = if (flashOn) R.string.flash_on else R.string.flash_off)
-                )
-                if (lastScannedText.isNotEmpty()) {
+                if (state.showActions) {
                     IconButtonWithTooltip(
-                        onClick = { shareCallback(lastScannedText) },
-                        painter = painterResource(id = R.drawable.baseline_share_24),
-                        contentDescription = stringResource(id = R.string.share)
+                        onClick = { viewModel.toggleFlash() },
+                        painter = painterResource(id = if (flashOn) R.drawable.baseline_flash_on_24 else R.drawable.baseline_flash_off_24),
+                        contentDescription = stringResource(id = if (flashOn) R.string.flash_on else R.string.flash_off)
                     )
-                    IconButtonWithTooltip(
-                        onClick = { viewModel.clearLastScannedText() },
-                        painter = painterResource(id = R.drawable.baseline_clear_24),
-                        contentDescription = stringResource(id = R.string.clear)
-                    )
+                    if (lastScannedText.isNotEmpty()) {
+                        IconButtonWithTooltip(
+                            onClick = { shareCallback(lastScannedText) },
+                            painter = painterResource(id = R.drawable.baseline_share_24),
+                            contentDescription = stringResource(id = R.string.share)
+                        )
+                        IconButtonWithTooltip(
+                            onClick = { viewModel.clearLastScannedText() },
+                            painter = painterResource(id = R.drawable.baseline_clear_24),
+                            contentDescription = stringResource(id = R.string.clear)
+                        )
+                    }
                 }
             }
         )

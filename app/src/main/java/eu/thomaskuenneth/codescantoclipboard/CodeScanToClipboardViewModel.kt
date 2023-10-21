@@ -19,13 +19,22 @@ data class CodeScanToClipboardUiState(
     // Generator
     val width: String = "400",
     val height: String = "400",
-    val code: String = ""
+    val code: String = "",
+
+    // app bar
+    val showActions: Boolean = false
 )
 
 class CodeScanToClipboardViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(CodeScanToClipboardUiState())
     val uiState: StateFlow<CodeScanToClipboardUiState> = _uiState.asStateFlow()
+
+    fun setShowActions(showActions: Boolean) {
+        _uiState.update { currentState ->
+            currentState.copy(showActions = showActions)
+        }
+    }
 
     fun setLastScannedText(lastScannedText: String) {
         _uiState.update { currentState ->
