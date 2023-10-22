@@ -34,6 +34,8 @@ import eu.thomaskuenneth.codescantoclipboard.screen.CodeScanToClipboardScreen
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import java.net.URL
+
 
 class CodeScanToClipboardActivity : ComponentActivity() {
 
@@ -107,8 +109,8 @@ class CodeScanToClipboardActivity : ComponentActivity() {
         }
 
         setContent {
-        val windowSizeClass = calculateWindowSizeClass(this)
-        val useNavigationRail = windowSizeClass.widthSizeClass > WindowWidthSizeClass.Compact
+            val windowSizeClass = calculateWindowSizeClass(this)
+            val useNavigationRail = windowSizeClass.widthSizeClass > WindowWidthSizeClass.Compact
             CodeScanToClipboardScreen(
                 useNavigationRail = useNavigationRail,
                 viewModel = viewModel,
@@ -144,7 +146,7 @@ class CodeScanToClipboardActivity : ComponentActivity() {
         val sendIntent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, text)
-            type = "text/plain"
+            type = text.getMimeType()
         }
         val shareIntent = Intent.createChooser(sendIntent, null)
         startActivity(shareIntent)
@@ -158,3 +160,13 @@ fun saveBitmapAndGetUri(context: Context, bitmap: Bitmap): Uri {
         context, "eu.thomaskuenneth.codescantoclipboard.fileprovider", file
     )
 }
+
+private fun String.getMimeType(): String = if (this.isValidURL()) "text/uri-list" else "text/plain"
+
+private fun String.isValidURL(): Boolean =
+    try {
+        URL(this).toURI()
+        true
+    } catch (e: Exception) {
+        false
+    }
