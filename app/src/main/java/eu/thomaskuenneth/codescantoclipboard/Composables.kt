@@ -2,6 +2,7 @@ package eu.thomaskuenneth.codescantoclipboard
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,10 +38,10 @@ fun IconButtonWithTooltip(
 // https://github.com/tkuenneth/compose_adaptive_scaffold/blob/main/adaptivescaffold/src/main/java/eu/thomaskuenneth/adaptivescaffold/DefaultColorScheme.kt
 
 @Composable
-fun defaultColorScheme() = with(isSystemInDarkTheme()) {
+fun defaultColorScheme(): ColorScheme {
     val hasDynamicColor = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val context = LocalContext.current
-    when (this) {
+    return when (isSystemInDarkTheme()) {
         true -> if (hasDynamicColor) {
             dynamicDarkColorScheme(context)
         } else {
