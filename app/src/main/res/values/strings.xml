@@ -12,4 +12,5 @@
     <string name="generate">Generate</string>
     <string name="range_hint">Value must be between 200 and 800</string>
     <string name="cannot_be_empty">This field must not be empty</string>
+    <string name="open_browser">Open browser</string>
 </resources>

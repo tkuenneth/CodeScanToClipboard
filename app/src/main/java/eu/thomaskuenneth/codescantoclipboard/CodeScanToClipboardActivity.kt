@@ -2,15 +2,20 @@ package eu.thomaskuenneth.codescantoclipboard
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.PendingIntent
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.drawable.Icon
 import android.net.Uri
+import android.os.Build.VERSION
+import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.service.chooser.ChooserAction
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
@@ -148,7 +153,24 @@ class CodeScanToClipboardActivity : ComponentActivity() {
             putExtra(Intent.EXTRA_TEXT, text)
             type = text.getMimeType()
         }
-        val shareIntent = Intent.createChooser(sendIntent, null)
+
+        val shareIntent = Intent.createChooser(sendIntent, null).apply {
+            if (text.isValidURL() && VERSION.SDK_INT >= VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                val context = this@CodeScanToClipboardActivity
+                val pendingIntent = PendingIntent.getActivity(
+                    context,
+                    0,
+                    Intent(Intent.ACTION_VIEW, Uri.parse(text)),
+                    PendingIntent.FLAG_IMMUTABLE
+                )
+                val customAction = ChooserAction.Builder(
+                    Icon.createWithResource(
+                        context, R.drawable.baseline_web_24
+                    ), getString(R.string.open_browser), pendingIntent
+                ).build()
+                putExtra(Intent.EXTRA_CHOOSER_CUSTOM_ACTIONS, arrayOf(customAction))
+            }
+        }
         startActivity(shareIntent)
     }
 }
@@ -161,12 +183,12 @@ fun saveBitmapAndGetUri(context: Context, bitmap: Bitmap): Uri {
     )
 }
 
-private fun String.getMimeType(): String = if (this.isValidURL()) "text/uri-list" else "text/plain"
+private fun String.getMimeType(): String =
+    if (this.isValidURL() && (VERSION.SDK_INT >= VERSION_CODES.UPSIDE_DOWN_CAKE)) "text/uri-list" else "text/plain"
 
-private fun String.isValidURL(): Boolean =
-    try {
-        URL(this).toURI()
-        true
-    } catch (e: Exception) {
-        false
-    }
+private fun String.isValidURL(): Boolean = try {
+    URL(this).toURI()
+    true
+} catch (e: Exception) {
+    false
+}
