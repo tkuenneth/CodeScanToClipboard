@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Code Scan to Clipboard</string>
+    <string name="flash_on">Blitz ist eingeschaltet</string>
+    <string name="flash_off">Blitz ist ausgeschaltet</string>
+    <string name="share">Teilen</string>
+    <string name="clear">Zuletzt gescannten Text löschen</string>
+    <string name="scanner">Scannen</string>
+    <string name="creator">Erzeugen</string>
+    <string name="width_in_pixel">Breite in Pixel</string>
+    <string name="height_in_pixel">Höhe in Pixel</string>
+    <string name="generate">Erzeugen</string>
+    <string name="range_hint">Wert muss zwischen 200 und 800 liegen</string>
+    <string name="cannot_be_empty">Feld darf nicht leer sein</string>
+    <string name="open_browser">Browser öffnen</string>
+</resources>
