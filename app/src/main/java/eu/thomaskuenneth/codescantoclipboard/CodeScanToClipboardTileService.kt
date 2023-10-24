@@ -4,12 +4,22 @@ import android.app.PendingIntent
 import android.app.TaskStackBuilder
 import android.content.Intent
 import android.os.Build
+import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 
 class CodeScanToClipboardTileService : TileService() {
 
+    override fun onStartListening() {
+        super.onStartListening()
+        qsTile.run {
+            state = Tile.STATE_ACTIVE
+            updateTile()
+        }
+    }
+
     override fun onClick() {
         val resultIntent = Intent(this, CodeScanToClipboardActivity::class.java)
+        resultIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
         val resultPendingIntent: PendingIntent = TaskStackBuilder.create(this).run {
             addNextIntentWithParentStack(resultIntent)
             getPendingIntent(
