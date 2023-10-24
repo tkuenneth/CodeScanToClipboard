@@ -1,8 +1,11 @@
 package eu.thomaskuenneth.codescantoclipboard.screen
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -229,29 +232,35 @@ fun CodeScanToClipboardNavigationRail(navController: NavHostController) {
     NavigationRail {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination
-        CodeScanToClipboardScreen.screens.forEach { screen ->
-            NavigationRailItem(
-                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                onClick = {
-                    navController.navigate(screen.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+        Column(
+            modifier = Modifier.fillMaxHeight(),
+            verticalArrangement = Arrangement.Center
+        ) {
+            CodeScanToClipboardScreen.screens.forEach { screen ->
+                NavigationRailItem(
+                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                    onClick = {
+                        navController.navigate(screen.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
-                label = {
-                    Text(text = stringResource(id = screen.label))
-                },
-                icon = {
-                    Icon(
-                        imageVector = screen.icon,
-                        contentDescription = stringResource(id = screen.label)
-                    )
-                },
-                alwaysShowLabel = true
-            )
+                    },
+                    label = {
+                        Text(text = stringResource(id = screen.label))
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = screen.icon,
+                            contentDescription = stringResource(id = screen.label)
+                        )
+                    },
+                    alwaysShowLabel = true
+                )
+            }
+//            }
         }
     }
 }

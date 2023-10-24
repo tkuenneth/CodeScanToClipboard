@@ -59,6 +59,7 @@ class CodeScanToClipboardActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     @SuppressLint("InflateParams")
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -123,7 +124,6 @@ class CodeScanToClipboardActivity : ComponentActivity() {
                 root = root,
                 shareCallback = ::share
             )
-            enableEdgeToEdge()
         }
     }
 
