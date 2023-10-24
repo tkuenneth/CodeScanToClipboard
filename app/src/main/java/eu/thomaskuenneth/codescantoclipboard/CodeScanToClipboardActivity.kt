@@ -21,6 +21,7 @@ import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
@@ -122,6 +123,7 @@ class CodeScanToClipboardActivity : ComponentActivity() {
                 root = root,
                 shareCallback = ::share
             )
+            enableEdgeToEdge()
         }
     }
 
