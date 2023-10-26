@@ -8,6 +8,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Build.VERSION
@@ -15,6 +16,7 @@ import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.provider.MediaStore
 import android.service.chooser.ChooserAction
 import android.view.KeyEvent
 import android.view.View
@@ -22,6 +24,8 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
@@ -48,6 +52,7 @@ class CodeScanToClipboardActivity : ComponentActivity() {
     private lateinit var barcodeView: DecoratedBarcodeView
     private lateinit var clipboardManager: ClipboardManager
     private lateinit var vibrator: Vibrator
+    private lateinit var launcher: ActivityResultLauncher<PickVisualMediaRequest>
 
     private val requestPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -67,6 +72,32 @@ class CodeScanToClipboardActivity : ComponentActivity() {
         vibrator = getSystemService(Vibrator::class.java)
         val viewModel: CodeScanToClipboardViewModel by viewModels()
 
+        launcher = registerForActivityResult(
+            ActivityResultContracts.PickVisualMedia()
+        ) {
+            it?.let { uri ->
+                try {
+                    if (VERSION.SDK_INT >= VERSION_CODES.Q) {
+                        ImageDecoder.decodeBitmap(
+                            ImageDecoder.createSource(
+                                contentResolver,
+                                uri
+                            )
+                        ) { decoder, _, _ ->
+                            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                            decoder.isMutableRequired = true
+                        }
+                    } else {
+                        MediaStore.Images.Media.getBitmap(contentResolver, uri)
+                    }
+                } catch (_: Exception) {
+                    null
+                }?.let { bitmap ->
+                    viewModel.scanImageFile(bitmap = bitmap)
+                }
+            }
+        }
+
         val root = layoutInflater.inflate(R.layout.layout, null) as DecoratedBarcodeView
         val formats = listOf(BarcodeFormat.QR_CODE, BarcodeFormat.CODE_39)
         barcodeView = root.findViewById(R.id.barcode_scanner)
@@ -80,8 +111,9 @@ class CodeScanToClipboardActivity : ComponentActivity() {
                             return
                         }
                         viewModel.setLastScannedText(lastScannedText = this)
-                        vibrator.vibrate()
-                        clipboardManager.copyToClipboard(this)
+                        if (this.isNotEmpty()) viewModel.setShowScanImageFileError(
+                            showScanFromFileError = false
+                        )
                     }
                 }
             }
@@ -95,6 +127,10 @@ class CodeScanToClipboardActivity : ComponentActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect {
                     if (it.flashOn) barcodeView.setTorchOn() else barcodeView.setTorchOff()
+                    if (it.lastScannedText.isNotEmpty()) {
+                        vibrator.vibrate()
+                        clipboardManager.copyToClipboard(it.lastScannedText)
+                    }
                 }
             }
         }
@@ -122,7 +158,8 @@ class CodeScanToClipboardActivity : ComponentActivity() {
                 useNavigationRail = useNavigationRail,
                 viewModel = viewModel,
                 root = root,
-                shareCallback = ::share
+                shareCallback = ::share,
+                scanImageFileCallback = ::scanImageFile
             )
         }
     }
@@ -174,6 +211,10 @@ class CodeScanToClipboardActivity : ComponentActivity() {
             }
         }
         startActivity(shareIntent)
+    }
+
+    private fun scanImageFile() {
+        launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
     }
 }
 

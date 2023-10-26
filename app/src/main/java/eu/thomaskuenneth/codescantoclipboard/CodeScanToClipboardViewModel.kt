@@ -1,15 +1,24 @@
 package eu.thomaskuenneth.codescantoclipboard
 
 import android.graphics.Bitmap
+import androidx.core.graphics.scale
 import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.zxing.BarcodeFormat
+import com.google.zxing.BinaryBitmap
+import com.google.zxing.DecodeHintType
+import com.google.zxing.MultiFormatReader
+import com.google.zxing.RGBLuminanceSource
+import com.google.zxing.ReaderException
+import com.google.zxing.common.HybridBinarizer
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-
+import kotlinx.coroutines.launch
+import java.util.Hashtable
 
 data class CodeScanToClipboardUiState(
     // Scanner
@@ -21,8 +30,10 @@ data class CodeScanToClipboardUiState(
     val height: String = "400",
     val code: String = "",
 
-    // app bar
-    val showActions: Boolean = false
+    // General
+    val showActions: Boolean = false,
+    // This is pretty specific and can be generalized if we need to show other errors
+    val showScanImageFileError: Boolean = false,
 )
 
 class CodeScanToClipboardViewModel : ViewModel() {
@@ -51,6 +62,48 @@ class CodeScanToClipboardViewModel : ViewModel() {
     fun toggleFlash() {
         _uiState.update { currentState ->
             currentState.copy(flashOn = !currentState.flashOn)
+        }
+    }
+
+    fun scanImageFile(bitmap: Bitmap) {
+        viewModelScope.launch {
+            val reader = MultiFormatReader().also { reader ->
+                reader.setHints(Hashtable<DecodeHintType, Any>().also { hints ->
+                    hints[DecodeHintType.TRY_HARDER] = java.lang.Boolean.TRUE
+                })
+            }
+            val imageFileWidth = bitmap.width
+            val imageFileHeight = bitmap.height
+            val work = if (imageFileWidth > 1000 && imageFileHeight > 1000) {
+                val ratio = imageFileWidth.toFloat() / imageFileHeight.toFloat()
+                val scaledBitmap = bitmap.scale(width = 1000, height = (1000F / ratio).toInt())
+                bitmap.recycle()
+                scaledBitmap
+            } else {
+                bitmap
+            }
+            val pixels = IntArray(work.width * work.height)
+            work.getPixels(pixels, 0, work.width, 0, 0, work.width, work.height)
+            val source = RGBLuminanceSource(work.width, work.height, pixels)
+            val binaryBitmap = BinaryBitmap(HybridBinarizer(source))
+            try {
+                val rawResult = reader.decodeWithState(binaryBitmap)
+                _uiState.update { currentState ->
+                    currentState.copy(lastScannedText = rawResult.text)
+                }
+            } catch (_: ReaderException) {
+                clearLastScannedText()
+                setShowScanImageFileError(showScanFromFileError = true)
+            } finally {
+                work.recycle()
+                reader.reset()
+            }
+        }
+    }
+
+    fun setShowScanImageFileError(showScanFromFileError: Boolean) {
+        _uiState.update { currentState ->
+            currentState.copy(showScanImageFileError = showScanFromFileError)
         }
     }
 

@@ -13,4 +13,7 @@
     <string name="range_hint">Wert muss zwischen 200 und 800 liegen</string>
     <string name="cannot_be_empty">Feld darf nicht leer sein</string>
     <string name="open_browser">Browser öffnen</string>
+    <string name="options_menu">Optionsmenü</string>
+    <string name="scan_image_file">Bilddatei scannen</string>
+    <string name="no_supported_formats_found">Leider habe ich keine unterstützten Formate gefunden</string>
 </resources>

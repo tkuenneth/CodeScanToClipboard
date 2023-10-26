@@ -12,7 +12,8 @@ class CodeScanToClipboardTileService : TileService() {
     override fun onStartListening() {
         super.onStartListening()
         qsTile.run {
-            state = Tile.STATE_ACTIVE
+            state = Tile.STATE_INACTIVE
+            this.
             updateTile()
         }
     }

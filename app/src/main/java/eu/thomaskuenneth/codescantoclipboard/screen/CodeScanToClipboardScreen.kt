@@ -2,6 +2,7 @@ package eu.thomaskuenneth.codescantoclipboard.screen
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,19 +12,28 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
@@ -43,9 +53,7 @@ import eu.thomaskuenneth.codescantoclipboard.R
 import eu.thomaskuenneth.codescantoclipboard.defaultColorScheme
 
 sealed class CodeScanToClipboardScreen(
-    val route: String,
-    @StringRes val label: Int,
-    val icon: ImageVector
+    val route: String, @StringRes val label: Int, val icon: ImageVector
 ) {
     companion object {
         val screens = listOf(
@@ -54,15 +62,11 @@ sealed class CodeScanToClipboardScreen(
     }
 
     object Scanner : CodeScanToClipboardScreen(
-        "scanner",
-        R.string.scanner,
-        Icons.Default.Camera
+        "scanner", R.string.scanner, Icons.Default.Camera
     )
 
     object Creator : CodeScanToClipboardScreen(
-        "creator",
-        R.string.creator,
-        Icons.Default.Create
+        "creator", R.string.creator, Icons.Default.Create
     )
 }
 
@@ -71,25 +75,24 @@ fun CodeScanToClipboardScreen(
     useNavigationRail: Boolean,
     viewModel: CodeScanToClipboardViewModel,
     root: DecoratedBarcodeView,
-    shareCallback: (String) -> Unit
+    shareCallback: (String) -> Unit,
+    scanImageFileCallback: () -> Unit
 ) {
     MaterialTheme(
         colorScheme = defaultColorScheme()
     ) {
         val navController = rememberNavController()
-        Scaffold(
-            topBar = {
-                CodeScanToClipboardTopAppBar(
-                    viewModel = viewModel,
-                    shareCallback = shareCallback
-                )
-            },
-            bottomBar = {
-                if (!useNavigationRail) CodeScanToClipboardBottomBar(
-                    navController = navController
-                )
-            }
-        ) {
+        Scaffold(topBar = {
+            CodeScanToClipboardTopAppBar(
+                viewModel = viewModel,
+                shareCallback = shareCallback,
+                scanImageFileCallback = scanImageFileCallback
+            )
+        }, bottomBar = {
+            if (!useNavigationRail) CodeScanToClipboardBottomBar(
+                navController = navController
+            )
+        }) {
             CodeScanToClipboardContent(
                 navController = navController,
                 useNavigationRail = useNavigationRail,
@@ -109,6 +112,10 @@ fun CodeScanToClipboardContent(
     root: DecoratedBarcodeView,
     paddingValues: PaddingValues
 ) {
+    val state by viewModel.uiState.collectAsState()
+    val callback = {
+        viewModel.setShowScanImageFileError(showScanFromFileError = false)
+    }
     Row(
         modifier = Modifier
             .fillMaxSize()
@@ -124,46 +131,55 @@ fun CodeScanToClipboardContent(
             modifier = Modifier.weight(1.0F)
         )
     }
+    if (state.showScanImageFileError) {
+        AlertDialog(
+            onDismissRequest = { callback() },
+            confirmButton = {
+                TextButton(onClick = { callback() }) { Text(stringResource(id = R.string.ok)) }
+            },
+            title = { Text(text = stringResource(id = R.string.scan_image_file)) },
+            text = { Text(text = stringResource(id = R.string.no_supported_formats_found)) }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CodeScanToClipboardTopAppBar(
     viewModel: CodeScanToClipboardViewModel,
-    shareCallback: (String) -> Unit
+    shareCallback: (String) -> Unit,
+    scanImageFileCallback: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     with(state) {
-        TopAppBar(
-            title = {
-                Text(
-                    text = stringResource(id = R.string.app_name),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+        TopAppBar(title = {
+            Text(
+                text = stringResource(id = R.string.app_name),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }, actions = {
+            if (state.showActions) {
+                IconButtonWithTooltip(
+                    onClick = { viewModel.toggleFlash() },
+                    painter = painterResource(id = if (flashOn) R.drawable.baseline_flash_on_24 else R.drawable.baseline_flash_off_24),
+                    contentDescription = stringResource(id = if (flashOn) R.string.flash_on else R.string.flash_off)
                 )
-            },
-            actions = {
-                if (state.showActions) {
+                if (lastScannedText.isNotEmpty()) {
                     IconButtonWithTooltip(
-                        onClick = { viewModel.toggleFlash() },
-                        painter = painterResource(id = if (flashOn) R.drawable.baseline_flash_on_24 else R.drawable.baseline_flash_off_24),
-                        contentDescription = stringResource(id = if (flashOn) R.string.flash_on else R.string.flash_off)
+                        onClick = { shareCallback(lastScannedText) },
+                        painter = painterResource(id = R.drawable.baseline_share_24),
+                        contentDescription = stringResource(id = R.string.share)
                     )
-                    if (lastScannedText.isNotEmpty()) {
-                        IconButtonWithTooltip(
-                            onClick = { shareCallback(lastScannedText) },
-                            painter = painterResource(id = R.drawable.baseline_share_24),
-                            contentDescription = stringResource(id = R.string.share)
-                        )
-                        IconButtonWithTooltip(
-                            onClick = { viewModel.clearLastScannedText() },
-                            painter = painterResource(id = R.drawable.baseline_clear_24),
-                            contentDescription = stringResource(id = R.string.clear)
-                        )
-                    }
+                    IconButtonWithTooltip(
+                        onClick = { viewModel.clearLastScannedText() },
+                        painter = painterResource(id = R.drawable.baseline_clear_24),
+                        contentDescription = stringResource(id = R.string.clear)
+                    )
                 }
             }
-        )
+            OptionsMenu(onClick = scanImageFileCallback)
+        })
     }
 }
 
@@ -173,8 +189,7 @@ fun CodeScanToClipboardBottomBar(navController: NavHostController) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination
         CodeScanToClipboardScreen.screens.forEach { screen ->
-            NavigationBarItem(
-                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+            NavigationBarItem(selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                 onClick = {
                     navController.navigate(screen.route) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -233,12 +248,10 @@ fun CodeScanToClipboardNavigationRail(navController: NavHostController) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination
         Column(
-            modifier = Modifier.fillMaxHeight(),
-            verticalArrangement = Arrangement.Center
+            modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center
         ) {
             CodeScanToClipboardScreen.screens.forEach { screen ->
-                NavigationRailItem(
-                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                NavigationRailItem(selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                     onClick = {
                         navController.navigate(screen.route) {
                             popUpTo(navController.graph.findStartDestination().id) {
@@ -260,7 +273,28 @@ fun CodeScanToClipboardNavigationRail(navController: NavHostController) {
                     alwaysShowLabel = true
                 )
             }
-//            }
+        }
+    }
+}
+
+@Composable
+fun OptionsMenu(onClick: () -> Unit) {
+    var menuOpened by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = {
+            menuOpened = true
+        }) {
+            Icon(Icons.Default.MoreVert, stringResource(id = R.string.options_menu))
+        }
+        DropdownMenu(expanded = menuOpened, onDismissRequest = {
+            menuOpened = false
+        }) {
+            DropdownMenuItem(onClick = {
+                menuOpened = false
+                onClick()
+            }, text = {
+                Text(stringResource(id = R.string.scan_image_file))
+            })
         }
     }
 }

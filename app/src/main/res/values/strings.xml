@@ -13,4 +13,8 @@
     <string name="range_hint">Value must be between 200 and 800</string>
     <string name="cannot_be_empty">This field must not be empty</string>
     <string name="open_browser">Open browser</string>
+    <string name="options_menu">Options menu</string>
+    <string name="scan_image_file">Scan image file</string>
+    <string name="ok" translatable="false">OK</string>
+    <string name="no_supported_formats_found">I am sorry, but I did not find any supported format</string>
 </resources>
