@@ -21,19 +21,20 @@ import kotlinx.coroutines.launch
 import java.util.Hashtable
 
 data class CodeScanToClipboardUiState(
-    // Scanner
+    val showScannerActions: Boolean = false,
+    // This is pretty specific and can be generalized if we need to show other errors
+    val showScanImageFileError: Boolean = false,
+)
+
+data class ScannerUiState(
     val lastScannedText: String = "",
     val flashOn: Boolean = false,
+)
 
-    // Generator
+data class GeneratorUiState(
     val width: String = "400",
     val height: String = "400",
     val code: String = "",
-
-    // General
-    val showActions: Boolean = false,
-    // This is pretty specific and can be generalized if we need to show other errors
-    val showScanImageFileError: Boolean = false,
 )
 
 class CodeScanToClipboardViewModel : ViewModel() {
@@ -41,26 +42,32 @@ class CodeScanToClipboardViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(CodeScanToClipboardUiState())
     val uiState: StateFlow<CodeScanToClipboardUiState> = _uiState.asStateFlow()
 
-    fun setShowActions(showActions: Boolean) {
+    private val _scannerUiState = MutableStateFlow(ScannerUiState())
+    val scannerUiState: StateFlow<ScannerUiState> = _scannerUiState.asStateFlow()
+
+    private val _generatorUiState = MutableStateFlow(GeneratorUiState())
+    val generatorUiState: StateFlow<GeneratorUiState> = _generatorUiState.asStateFlow()
+
+    fun setShowScannerActions(showActions: Boolean) {
         _uiState.update { currentState ->
-            currentState.copy(showActions = showActions)
+            currentState.copy(showScannerActions = showActions)
         }
     }
 
     fun setLastScannedText(lastScannedText: String) {
-        _uiState.update { currentState ->
+        _scannerUiState.update { currentState ->
             currentState.copy(lastScannedText = lastScannedText)
         }
     }
 
     fun clearLastScannedText() {
-        _uiState.update { currentState ->
+        _scannerUiState.update { currentState ->
             currentState.copy(lastScannedText = "")
         }
     }
 
     fun toggleFlash() {
-        _uiState.update { currentState ->
+        _scannerUiState.update { currentState ->
             currentState.copy(flashOn = !currentState.flashOn)
         }
     }
@@ -88,7 +95,7 @@ class CodeScanToClipboardViewModel : ViewModel() {
             val binaryBitmap = BinaryBitmap(HybridBinarizer(source))
             try {
                 val rawResult = reader.decodeWithState(binaryBitmap)
-                _uiState.update { currentState ->
+                _scannerUiState.update { currentState ->
                     currentState.copy(lastScannedText = rawResult.text)
                 }
             } catch (_: ReaderException) {
@@ -110,26 +117,26 @@ class CodeScanToClipboardViewModel : ViewModel() {
     // Creator
 
     fun setWidth(width: String) {
-        _uiState.update { currentState ->
+        _generatorUiState.update { currentState ->
             currentState.copy(width = width)
         }
     }
 
     fun setHeight(height: String) {
-        _uiState.update { currentState ->
+        _generatorUiState.update { currentState ->
             currentState.copy(height = height)
         }
     }
 
     fun setCode(code: String) {
-        _uiState.update { currentState ->
+        _generatorUiState.update { currentState ->
             currentState.copy(code = code)
         }
     }
 
-    fun isWidthError() = with(_uiState.value.width) { isNotInRange() }
-    fun isHeightError() = with(_uiState.value.height) { isNotInRange() }
-    private fun isCodeError() = with(_uiState.value.code) { isEmpty() }
+    fun isWidthError() = with(_generatorUiState.value.width) { isNotInRange() }
+    fun isHeightError() = with(_generatorUiState.value.height) { isNotInRange() }
+    private fun isCodeError() = with(_generatorUiState.value.code) { isEmpty() }
     private fun String.isNotInRange() = isEmpty() || !isDigitsOnly() ||
             with(toInt()) { this !in 200..800 }
 
@@ -140,7 +147,7 @@ class CodeScanToClipboardViewModel : ViewModel() {
 
     fun generate() {
         val barcodeEncoder = BarcodeEncoder()
-        with(_uiState.value) {
+        with(_generatorUiState.value) {
             try {
                 _bitmap.value = barcodeEncoder.encodeBitmap(
                     code,

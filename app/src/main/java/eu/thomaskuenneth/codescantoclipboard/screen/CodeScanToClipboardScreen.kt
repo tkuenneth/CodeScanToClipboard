@@ -151,36 +151,40 @@ fun CodeScanToClipboardTopAppBar(
     scanImageFileCallback: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
-    with(state) {
-        TopAppBar(title = {
-            Text(
-                text = stringResource(id = R.string.app_name),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+    val scannerUiState by viewModel.scannerUiState.collectAsState()
+    val flashOn = scannerUiState.flashOn
+    val lastScannedText = scannerUiState.lastScannedText
+    TopAppBar(title = {
+        Text(
+            text = stringResource(id = R.string.app_name),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }, actions = {
+        if (state.showScannerActions) {
+            IconButtonWithTooltip(
+                onClick = { viewModel.toggleFlash() },
+                painter = painterResource(id = if (flashOn) R.drawable.baseline_flash_on_24 else R.drawable.baseline_flash_off_24),
+                contentDescription = stringResource(id = if (flashOn) R.string.flash_on else R.string.flash_off)
             )
-        }, actions = {
-            if (state.showActions) {
+            if (lastScannedText.isNotEmpty()) {
                 IconButtonWithTooltip(
-                    onClick = { viewModel.toggleFlash() },
-                    painter = painterResource(id = if (flashOn) R.drawable.baseline_flash_on_24 else R.drawable.baseline_flash_off_24),
-                    contentDescription = stringResource(id = if (flashOn) R.string.flash_on else R.string.flash_off)
+                    onClick = { shareCallback(lastScannedText) },
+                    painter = painterResource(id = R.drawable.baseline_share_24),
+                    contentDescription = stringResource(id = R.string.share)
                 )
-                if (lastScannedText.isNotEmpty()) {
-                    IconButtonWithTooltip(
-                        onClick = { shareCallback(lastScannedText) },
-                        painter = painterResource(id = R.drawable.baseline_share_24),
-                        contentDescription = stringResource(id = R.string.share)
-                    )
-                    IconButtonWithTooltip(
-                        onClick = { viewModel.clearLastScannedText() },
-                        painter = painterResource(id = R.drawable.baseline_clear_24),
-                        contentDescription = stringResource(id = R.string.clear)
-                    )
-                }
+                IconButtonWithTooltip(
+                    onClick = { viewModel.clearLastScannedText() },
+                    painter = painterResource(id = R.drawable.baseline_clear_24),
+                    contentDescription = stringResource(id = R.string.clear)
+                )
             }
-            OptionsMenu(onClick = scanImageFileCallback)
-        })
-    }
+        }
+        OptionsMenu(
+            showScannerActions = state.showScannerActions,
+            onClick = scanImageFileCallback
+        )
+    })
 }
 
 @Composable
@@ -278,23 +282,32 @@ fun CodeScanToClipboardNavigationRail(navController: NavHostController) {
 }
 
 @Composable
-fun OptionsMenu(onClick: () -> Unit) {
+fun OptionsMenu(
+    showScannerActions: Boolean,
+    onClick: () -> Unit
+) {
     var menuOpened by remember { mutableStateOf(false) }
-    Box {
-        IconButton(onClick = {
-            menuOpened = true
-        }) {
-            Icon(Icons.Default.MoreVert, stringResource(id = R.string.options_menu))
-        }
-        DropdownMenu(expanded = menuOpened, onDismissRequest = {
+    val list = mutableListOf<@Composable () -> Unit>()
+    if (showScannerActions) list.add {
+        DropdownMenuItem(onClick = {
             menuOpened = false
-        }) {
-            DropdownMenuItem(onClick = {
+            onClick()
+        }, text = {
+            Text(stringResource(id = R.string.scan_image_file))
+        })
+    }
+    if (list.isNotEmpty()) {
+        Box {
+            IconButton(onClick = {
+                menuOpened = true
+            }) {
+                Icon(Icons.Default.MoreVert, stringResource(id = R.string.options_menu))
+            }
+            DropdownMenu(expanded = menuOpened, onDismissRequest = {
                 menuOpened = false
-                onClick()
-            }, text = {
-                Text(stringResource(id = R.string.scan_image_file))
-            })
+            }) {
+                list.forEach { it() }
+            }
         }
     }
 }

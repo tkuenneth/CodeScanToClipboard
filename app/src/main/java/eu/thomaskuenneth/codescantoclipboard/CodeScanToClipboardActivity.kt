@@ -107,7 +107,7 @@ class CodeScanToClipboardActivity : ComponentActivity() {
             val callback = object : BarcodeCallback {
                 override fun barcodeResult(result: BarcodeResult) {
                     with(result.text) {
-                        if (this == null || this == viewModel.uiState.value.lastScannedText) {
+                        if (this == null || this == viewModel.scannerUiState.value.lastScannedText) {
                             return
                         }
                         viewModel.setLastScannedText(lastScannedText = this)
@@ -125,7 +125,7 @@ class CodeScanToClipboardActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect {
+                viewModel.scannerUiState.collect {
                     if (it.flashOn) barcodeView.setTorchOn() else barcodeView.setTorchOff()
                     if (it.lastScannedText.isNotEmpty()) {
                         vibrator.vibrate()

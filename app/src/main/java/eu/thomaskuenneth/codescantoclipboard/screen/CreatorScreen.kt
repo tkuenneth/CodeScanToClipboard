@@ -28,8 +28,8 @@ import eu.thomaskuenneth.codescantoclipboard.R
 fun CreatorScreen(
     viewModel: CodeScanToClipboardViewModel,
 ) {
-    viewModel.setShowActions(showActions = false)
-    val state by viewModel.uiState.collectAsState()
+    viewModel.setShowScannerActions(showActions = false)
+    val state by viewModel.generatorUiState.collectAsState()
     with(state) {
         Column(
             modifier = Modifier
@@ -72,7 +72,8 @@ fun MyTextField(
     message: String = "",
     keyboardType: KeyboardType = KeyboardType.Number
 ) {
-    OutlinedTextField(value = value,
+    OutlinedTextField(
+        value = value,
         singleLine = true,
         label = {
             Text(text = stringResource(id = resId))
