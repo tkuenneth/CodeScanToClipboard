@@ -1,5 +1,6 @@
 package eu.thomaskuenneth.codescantoclipboard
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.app.TaskStackBuilder
 import android.content.Intent
@@ -18,6 +19,7 @@ class CodeScanToClipboardTileService : TileService() {
         }
     }
 
+    @SuppressLint("StartActivityAndCollapseDeprecated")
     override fun onClick() {
         val resultIntent = Intent(this, CodeScanToClipboardActivity::class.java)
         resultIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK

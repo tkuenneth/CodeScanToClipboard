@@ -6,14 +6,16 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.PlainTooltipBox
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 
@@ -22,11 +24,18 @@ import androidx.compose.ui.platform.LocalContext
 fun IconButtonWithTooltip(
     onClick: () -> Unit, painter: Painter, contentDescription: String
 ) {
-    PlainTooltipBox(tooltip = {
-        Text(text = contentDescription)
-    }) {
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        tooltip = {
+            PlainTooltip {
+
+                Text(text = contentDescription)
+            }
+        },
+        state = rememberTooltipState()
+    ) {
         IconButton(
-            onClick = onClick, modifier = Modifier.tooltipAnchor()
+            onClick = onClick
         ) {
             Icon(
                 painter = painter, contentDescription = contentDescription

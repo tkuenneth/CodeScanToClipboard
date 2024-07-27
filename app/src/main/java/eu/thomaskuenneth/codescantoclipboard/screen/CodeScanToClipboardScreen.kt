@@ -61,11 +61,11 @@ sealed class CodeScanToClipboardScreen(
         )
     }
 
-    object Scanner : CodeScanToClipboardScreen(
+    data object Scanner : CodeScanToClipboardScreen(
         "scanner", R.string.scanner, Icons.Default.Camera
     )
 
-    object Creator : CodeScanToClipboardScreen(
+    data object Creator : CodeScanToClipboardScreen(
         "creator", R.string.creator, Icons.Default.Create
     )
 }
