@@ -1,6 +1,7 @@
 package eu.thomaskuenneth.codescantoclipboard
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.core.graphics.scale
 import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.ViewModel
@@ -35,6 +36,8 @@ data class GeneratorUiState(
     val width: String = "400",
     val height: String = "400",
     val code: String = "",
+    val formatIndex: Int = 0,
+    val generatorExceptionMessage: String = "",
 )
 
 class CodeScanToClipboardViewModel : ViewModel() {
@@ -134,9 +137,27 @@ class CodeScanToClipboardViewModel : ViewModel() {
         }
     }
 
+    fun setFormatIndex(current: Int) {
+        _generatorUiState.update { currentState -> currentState.copy(formatIndex = current) }
+    }
+
+    fun setGeneratorExceptionMessage(msg: String) {
+        _generatorUiState.update { currentState ->
+            currentState.copy(
+                generatorExceptionMessage = msg
+            )
+        }
+    }
+
     fun isWidthError() = with(_generatorUiState.value.width) { isNotInRange() }
     fun isHeightError() = with(_generatorUiState.value.height) { isNotInRange() }
-    private fun isCodeError() = with(_generatorUiState.value.code) { isEmpty() }
+    fun isCodeError() = with(_generatorUiState.value) {
+        when (formatIndex) {
+            1 -> !(code.isDigitsOnly() && code.length in (12..13))
+            else -> code.isEmpty()
+        }
+    }
+
     private fun String.isNotInRange() = isEmpty() || !isDigitsOnly() ||
             with(toInt()) { this !in 200..800 }
 
@@ -148,16 +169,26 @@ class CodeScanToClipboardViewModel : ViewModel() {
     fun generate() {
         val barcodeEncoder = BarcodeEncoder()
         with(_generatorUiState.value) {
+            val format = when (formatIndex) {
+                1 -> BarcodeFormat.EAN_13
+                else -> BarcodeFormat.QR_CODE
+            }
             try {
                 _bitmap.value = barcodeEncoder.encodeBitmap(
                     code,
-                    BarcodeFormat.QR_CODE,
+                    format,
                     width.toInt(),
                     height.toInt()
                 )
             } catch (ex: Exception) {
-                // ignore
+                Log.e(TAG, "encodeBitmap()", ex)
+                // if there's no message, show nothing
+                setGeneratorExceptionMessage(ex.message ?: "")
             }
         }
+    }
+
+    companion object {
+        val TAG: String = CodeScanToClipboardViewModel::class.java.simpleName
     }
 }

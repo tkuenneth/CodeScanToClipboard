@@ -39,6 +39,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -98,7 +101,15 @@ fun CodeScanToClipboardScreen(
                 useNavigationRail = useNavigationRail,
                 viewModel = viewModel,
                 root = root,
-                paddingValues = it
+                paddingValues = object : PaddingValues {
+                    override fun calculateTopPadding(): Dp = it.calculateTopPadding()
+                    override fun calculateBottomPadding(): Dp = 0.dp
+                    override fun calculateLeftPadding(layoutDirection: LayoutDirection): Dp =
+                        it.calculateLeftPadding(layoutDirection)
+
+                    override fun calculateRightPadding(layoutDirection: LayoutDirection): Dp =
+                        it.calculateRightPadding(layoutDirection)
+                }
             )
         }
     }

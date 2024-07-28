@@ -11,10 +11,15 @@
     <string name="code" translatable="false">Code</string>
     <string name="generate">Generate</string>
     <string name="range_hint">Value must be between 200 and 800</string>
-    <string name="cannot_be_empty">This field must not be empty</string>
+    <string name="cannot_be_empty">Field must not be empty</string>
+    <string name="must_be_12_or_13_digits">Field must consist of 12 or 13 digits</string>
     <string name="open_browser">Open browser</string>
     <string name="options_menu">Options menu</string>
     <string name="scan_image_file">Scan image file</string>
     <string name="ok" translatable="false">OK</string>
     <string name="no_supported_formats_found">I am sorry, but I did not find any supported format</string>
+    <string name="could_not_generate_code">Could not generate code</string>
+
+    <string name="qrcode" translatable="false">QR code</string>
+    <string name="ean13" translatable="false">EAN-13</string>
 </resources>

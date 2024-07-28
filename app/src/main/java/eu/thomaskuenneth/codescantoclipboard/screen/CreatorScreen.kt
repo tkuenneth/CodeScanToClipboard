@@ -4,14 +4,22 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -24,12 +32,18 @@ import androidx.compose.ui.unit.dp
 import eu.thomaskuenneth.codescantoclipboard.CodeScanToClipboardViewModel
 import eu.thomaskuenneth.codescantoclipboard.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatorScreen(
     viewModel: CodeScanToClipboardViewModel,
 ) {
     viewModel.setShowScannerActions(showActions = false)
     val state by viewModel.generatorUiState.collectAsState()
+    val options = listOf(
+        stringResource(id = R.string.qrcode),
+        stringResource(id = R.string.ean13),
+    )
+    val callback = { viewModel.setGeneratorExceptionMessage("") }
     with(state) {
         Column(
             modifier = Modifier
@@ -50,16 +64,56 @@ fun CreatorScreen(
             MyTextField(
                 value = code,
                 resId = R.string.code,
-                message = if (code.isEmpty()) stringResource(id = R.string.cannot_be_empty) else "",
+                message = if (viewModel.isCodeError())
+                    stringResource(
+                        when (state.formatIndex) {
+                            1 -> R.string.must_be_12_or_13_digits
+                            else -> R.string.cannot_be_empty
+                        }
+                    )
+                else "",
                 onValueChange = { viewModel.setCode(it) },
                 keyboardType = KeyboardType.Ascii
             )
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+                options.forEachIndexed { index, label ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = options.size
+                        ),
+                        onClick = {
+                            viewModel.setFormatIndex(index)
+                        },
+                        selected = index == state.formatIndex
+                    ) {
+                        Text(label)
+                    }
+                }
+            }
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = { viewModel.generate() }, enabled = viewModel.canGenerate()
             ) {
                 Text(text = stringResource(id = R.string.generate))
             }
+            Spacer(
+                modifier = Modifier.height(
+                    WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                )
+            )
+        }
+        if (state.generatorExceptionMessage.isNotEmpty()) {
+            AlertDialog(
+                onDismissRequest = callback,
+                confirmButton = {
+                    Button(onClick = callback) {
+                        Text(text = stringResource(id = R.string.ok))
+                    }
+                },
+                title = { Text(text = stringResource(id = R.string.could_not_generate_code)) },
+                text = { Text(text = state.generatorExceptionMessage) }
+            )
         }
     }
 }
