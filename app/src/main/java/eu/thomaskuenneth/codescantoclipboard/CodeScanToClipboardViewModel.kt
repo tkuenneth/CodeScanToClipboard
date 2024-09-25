@@ -166,6 +166,10 @@ class CodeScanToClipboardViewModel : ViewModel() {
     private val _bitmap = MutableStateFlow<Bitmap?>(null)
     val bitmap: StateFlow<Bitmap?> = _bitmap.asStateFlow()
 
+    fun clearBitmap() {
+        _bitmap.update { null }
+    }
+
     fun generate() {
         val barcodeEncoder = BarcodeEncoder()
         with(_generatorUiState.value) {
@@ -174,12 +178,11 @@ class CodeScanToClipboardViewModel : ViewModel() {
                 else -> BarcodeFormat.QR_CODE
             }
             try {
-                _bitmap.value = barcodeEncoder.encodeBitmap(
-                    code,
-                    format,
-                    width.toInt(),
-                    height.toInt()
-                )
+                _bitmap.update {
+                    barcodeEncoder.encodeBitmap(
+                        code, format, width.toInt(), height.toInt()
+                    )
+                }
             } catch (ex: Exception) {
                 Log.e(TAG, "encodeBitmap()", ex)
                 // if there's no message, show nothing

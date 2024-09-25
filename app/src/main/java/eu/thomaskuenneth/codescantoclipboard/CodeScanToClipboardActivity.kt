@@ -146,6 +146,7 @@ class CodeScanToClipboardActivity : ComponentActivity() {
                             flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
                         }, null)
                         startActivity(chooserIntent2)
+                        viewModel.clearBitmap()
                     }
                 }
             }

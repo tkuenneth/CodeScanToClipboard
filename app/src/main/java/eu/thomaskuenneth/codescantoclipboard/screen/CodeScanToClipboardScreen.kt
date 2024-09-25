@@ -180,7 +180,10 @@ fun CodeScanToClipboardTopAppBar(
             )
             if (lastScannedText.isNotEmpty()) {
                 IconButtonWithTooltip(
-                    onClick = { shareCallback(lastScannedText) },
+                    onClick = {
+                        shareCallback(lastScannedText)
+                        viewModel.clearLastScannedText()
+                    },
                     painter = painterResource(id = R.drawable.baseline_share_24),
                     contentDescription = stringResource(id = R.string.share)
                 )
