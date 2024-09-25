@@ -158,8 +158,8 @@ class CodeScanToClipboardViewModel : ViewModel() {
         }
     }
 
-    private fun String.isNotInRange() = isEmpty() || !isDigitsOnly() ||
-            with(toInt()) { this !in 200..800 }
+    private fun String.isNotInRange() =
+        isEmpty() || !isDigitsOnly() || with(toInt()) { this !in 200..800 }
 
     fun canGenerate() = !isWidthError() && !isHeightError() && !isCodeError()
 

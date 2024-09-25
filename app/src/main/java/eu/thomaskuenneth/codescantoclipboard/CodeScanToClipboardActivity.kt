@@ -41,11 +41,14 @@ import com.journeyapps.barcodescanner.BarcodeResult
 import com.journeyapps.barcodescanner.DecoratedBarcodeView
 import com.journeyapps.barcodescanner.DefaultDecoderFactory
 import eu.thomaskuenneth.codescantoclipboard.screen.CodeScanToClipboardScreen
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
 
+
+private const val KEY_TEXT_ON_CLIPBOARD = "textOnClipboard"
 
 class CodeScanToClipboardActivity : ComponentActivity() {
 
@@ -61,11 +64,18 @@ class CodeScanToClipboardActivity : ComponentActivity() {
             }
         }
 
+    // Keeping it as a simple variable to keep the ViewModel and ui state simple
+    private var textOnClipboard = ""
+
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     @SuppressLint("InflateParams")
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        savedInstanceState?.run {
+            textOnClipboard = getString(KEY_TEXT_ON_CLIPBOARD, "")
+        }
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         clipboardManager = getSystemService(android.content.ClipboardManager::class.java)
@@ -80,8 +90,7 @@ class CodeScanToClipboardActivity : ComponentActivity() {
                     if (VERSION.SDK_INT >= VERSION_CODES.Q) {
                         ImageDecoder.decodeBitmap(
                             ImageDecoder.createSource(
-                                contentResolver,
-                                uri
+                                contentResolver, uri
                             )
                         ) { decoder, _, _ ->
                             decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
@@ -125,11 +134,14 @@ class CodeScanToClipboardActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.scannerUiState.collect {
-                    if (it.flashOn) barcodeView.setTorchOn() else barcodeView.setTorchOff()
-                    if (it.lastScannedText.isNotEmpty()) {
-                        vibrator.vibrate()
-                        clipboardManager.copyToClipboard(it.lastScannedText)
+                viewModel.scannerUiState.collect { state ->
+                    if (state.flashOn) barcodeView.setTorchOn() else barcodeView.setTorchOff()
+                    if (state.lastScannedText.isNotEmpty()) {
+                        if (textOnClipboard != state.lastScannedText) {
+                            vibrator.vibrate()
+                            clipboardManager.copyToClipboard(state.lastScannedText)
+                            textOnClipboard = state.lastScannedText
+                        }
                     }
                 }
             }
@@ -163,6 +175,11 @@ class CodeScanToClipboardActivity : ComponentActivity() {
                 scanImageFileCallback = ::scanImageFile
             )
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(KEY_TEXT_ON_CLIPBOARD, textOnClipboard)
     }
 
     override fun onResume() {
