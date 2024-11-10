@@ -7,3 +7,8 @@
 /migrations.xml
 /other.xml
 /misc.xml
+
+studiobot.xml
+kotlinc.xml
+gradle.xml
+/inspectionProfiles/Project_Default.xml
