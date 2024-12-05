@@ -41,7 +41,6 @@ import com.journeyapps.barcodescanner.BarcodeResult
 import com.journeyapps.barcodescanner.DecoratedBarcodeView
 import com.journeyapps.barcodescanner.DefaultDecoderFactory
 import eu.thomaskuenneth.codescantoclipboard.screen.CodeScanToClipboardScreen
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -78,7 +77,7 @@ class CodeScanToClipboardActivity : ComponentActivity() {
         }
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        clipboardManager = getSystemService(android.content.ClipboardManager::class.java)
+        clipboardManager = getSystemService(ClipboardManager::class.java)
         vibrator = getSystemService(Vibrator::class.java)
         val viewModel: CodeScanToClipboardViewModel by viewModels()
 
@@ -250,6 +249,6 @@ private fun String.getMimeType(): String =
 private fun String.isValidURL(): Boolean = try {
     URL(this).toURI()
     true
-} catch (e: Exception) {
+} catch (_: Exception) {
     false
 }
