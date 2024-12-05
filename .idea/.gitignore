@@ -12,3 +12,5 @@ studiobot.xml
 kotlinc.xml
 gradle.xml
 /inspectionProfiles/Project_Default.xml
+compiler.xml
+runConfigurations.xml
