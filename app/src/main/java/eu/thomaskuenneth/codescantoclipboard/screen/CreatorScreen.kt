@@ -59,15 +59,16 @@ fun CreatorScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                val imeAction = if (!viewModel.canGenerate()) ImeAction.Next else ImeAction.Done
                 val widthAndHeight: @Composable () -> Unit = {
                     ValidatingTextField(value = width,
                         resId = R.string.width_in_pixel,
                         message = if (viewModel.isWidthError()) stringResource(id = R.string.range_hint) else "",
-                        imeAction = ImeAction.Next,
+                        imeAction = imeAction,
                         onValueChange = { viewModel.setWidth(it) })
                     ValidatingTextField(value = height,
                         resId = R.string.height_in_pixel,
-                        imeAction = ImeAction.Next,
+                        imeAction = imeAction,
                         message = if (viewModel.isHeightError()) stringResource(id = R.string.range_hint) else "",
                         onValueChange = { viewModel.setHeight(it) })
                 }
@@ -90,7 +91,7 @@ fun CreatorScreen(
                     )
                     else "",
                     keyboardType = KeyboardType.Ascii,
-                    imeAction = if (!viewModel.canGenerate()) ImeAction.Next else ImeAction.Done,
+                    imeAction = imeAction,
                 )
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
                     options.forEachIndexed { index, label ->
