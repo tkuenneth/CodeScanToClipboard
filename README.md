@@ -1,6 +1,10 @@
 # Welcome
 
-**Code Scan To Clipboard** scans barcodes and qr codes and copies the result to the clipboard. It is intentionally kept simple, but has a few cool features:
+**Code Scan To Clipboard** scans barcodes and QR codes and copies the result to the clipboard. 
+
+You can also create QR code, EAN-13 and Aztec Code images.
+
+It is intentionally kept simple, but has a few cool features:
 
 - Open Source
 - Free
