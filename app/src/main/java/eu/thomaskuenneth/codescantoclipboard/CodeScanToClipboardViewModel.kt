@@ -175,6 +175,7 @@ class CodeScanToClipboardViewModel : ViewModel() {
         with(_generatorUiState.value) {
             val format = when (formatIndex) {
                 1 -> BarcodeFormat.EAN_13
+                2 -> BarcodeFormat.AZTEC
                 else -> BarcodeFormat.QR_CODE
             }
             try {

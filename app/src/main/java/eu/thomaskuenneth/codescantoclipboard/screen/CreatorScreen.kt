@@ -47,6 +47,7 @@ fun CreatorScreen(
     val options = listOf(
         stringResource(id = R.string.qrcode),
         stringResource(id = R.string.ean13),
+        stringResource(id = R.string.aztec),
     )
     val callback = { viewModel.setGeneratorExceptionMessage("") }
     with(state) {
