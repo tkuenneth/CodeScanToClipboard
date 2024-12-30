@@ -61,9 +61,11 @@ fun CreatorScreen(
                 ValidatingTextField(value = width,
                     resId = R.string.width_in_pixel,
                     message = if (viewModel.isWidthError()) stringResource(id = R.string.range_hint) else "",
+                    imeAction = ImeAction.Next,
                     onValueChange = { viewModel.setWidth(it) })
                 ValidatingTextField(value = height,
                     resId = R.string.height_in_pixel,
+                    imeAction = ImeAction.Next,
                     message = if (viewModel.isHeightError()) stringResource(id = R.string.range_hint) else "",
                     onValueChange = { viewModel.setHeight(it) })
             }
@@ -85,7 +87,8 @@ fun CreatorScreen(
                     }
                 )
                 else "",
-                keyboardType = KeyboardType.Ascii
+                keyboardType = KeyboardType.Ascii,
+                imeAction = if (!viewModel.canGenerate()) ImeAction.Next else ImeAction.Done,
             )
             SingleChoiceSegmentedButtonRow(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
                 options.forEachIndexed { index, label ->
@@ -132,6 +135,7 @@ fun ValidatingTextField(
     onValueChange: (String) -> Unit,
     message: String = "",
     keyboardType: KeyboardType = KeyboardType.Number,
+    imeAction: ImeAction = ImeAction.Default,
     modifier: Modifier = Modifier
 ) {
     OutlinedTextField(
@@ -144,6 +148,6 @@ fun ValidatingTextField(
         },
         isError = message.isNotEmpty(),
         supportingText = { Text(text = message) },
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Next),
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
     )
 }

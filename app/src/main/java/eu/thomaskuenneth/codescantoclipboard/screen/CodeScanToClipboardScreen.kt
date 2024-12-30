@@ -115,7 +115,9 @@ fun CodeScanToClipboardScreen(
             }) {
                 val paddingValues = object : PaddingValues {
                     override fun calculateTopPadding(): Dp = it.calculateTopPadding()
-                    override fun calculateBottomPadding(): Dp = 0.dp
+                    override fun calculateBottomPadding(): Dp =
+                        if (useNavigationRail) 0.dp else it.calculateBottomPadding()
+
                     override fun calculateLeftPadding(layoutDirection: LayoutDirection): Dp =
                         it.calculateLeftPadding(layoutDirection)
 
@@ -127,7 +129,7 @@ fun CodeScanToClipboardScreen(
                     viewModel = viewModel,
                     root = root,
                     modifier = Modifier
-                        .weight(1.0F)
+                        .fillMaxSize()
                         .padding(paddingValues = paddingValues)
                 )
             }
