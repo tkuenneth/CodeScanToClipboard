@@ -8,12 +8,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -24,7 +22,6 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -61,11 +58,11 @@ fun CreatorScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             val widthAndHeight: @Composable () -> Unit = {
-                MyTextField(value = width,
+                ValidatingTextField(value = width,
                     resId = R.string.width_in_pixel,
                     message = if (viewModel.isWidthError()) stringResource(id = R.string.range_hint) else "",
                     onValueChange = { viewModel.setWidth(it) })
-                MyTextField(value = height,
+                ValidatingTextField(value = height,
                     resId = R.string.height_in_pixel,
                     message = if (viewModel.isHeightError()) stringResource(id = R.string.range_hint) else "",
                     onValueChange = { viewModel.setHeight(it) })
@@ -77,7 +74,7 @@ fun CreatorScreen(
             } else {
                 widthAndHeight()
             }
-            MyTextField(
+            ValidatingTextField(
                 value = code,
                 onValueChange = { viewModel.setCode(it) },
                 resId = R.string.code,
@@ -129,7 +126,7 @@ fun CreatorScreen(
 }
 
 @Composable
-fun MyTextField(
+fun ValidatingTextField(
     value: String,
     @StringRes resId: Int,
     onValueChange: (String) -> Unit,
