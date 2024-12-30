@@ -31,6 +31,7 @@ import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -56,6 +57,7 @@ import androidx.navigation.compose.rememberNavController
 import com.journeyapps.barcodescanner.DecoratedBarcodeView
 import eu.thomaskuenneth.codescantoclipboard.CodeScanToClipboardViewModel
 import eu.thomaskuenneth.codescantoclipboard.IconButtonWithTooltip
+import eu.thomaskuenneth.codescantoclipboard.LocalWindowSizeClass
 import eu.thomaskuenneth.codescantoclipboard.R
 import eu.thomaskuenneth.codescantoclipboard.defaultColorScheme
 
@@ -79,7 +81,6 @@ sealed class CodeScanToClipboardScreen(
 
 @Composable
 fun CodeScanToClipboardScreen(
-    useNavigationRail: Boolean,
     viewModel: CodeScanToClipboardViewModel,
     root: DecoratedBarcodeView,
     shareCallback: (String) -> Unit,
@@ -88,23 +89,31 @@ fun CodeScanToClipboardScreen(
     MaterialTheme(
         colorScheme = defaultColorScheme()
     ) {
+        val useNavigationRail =
+            LocalWindowSizeClass.current.widthSizeClass > WindowWidthSizeClass.Compact
         val navController = rememberNavController()
-        Scaffold(topBar = {
-            CodeScanToClipboardTopAppBar(
-                viewModel = viewModel,
-                shareCallback = shareCallback,
-                scanImageFileCallback = scanImageFileCallback
-            )
-        }, bottomBar = {
-            if (!useNavigationRail) CodeScanToClipboardBottomBar(
+        val state by viewModel.uiState.collectAsState()
+        val callback = {
+            viewModel.setShowScanImageFileError(showScanFromFileError = false)
+        }
+        Row(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (useNavigationRail) CodeScanToClipboardNavigationRail(
                 navController = navController
             )
-        }) {
-            CodeScanToClipboardContent(navController = navController,
-                useNavigationRail = useNavigationRail,
-                viewModel = viewModel,
-                root = root,
-                paddingValues = object : PaddingValues {
+            Scaffold(topBar = {
+                CodeScanToClipboardTopAppBar(
+                    viewModel = viewModel,
+                    shareCallback = shareCallback,
+                    scanImageFileCallback = scanImageFileCallback
+                )
+            }, bottomBar = {
+                if (!useNavigationRail) CodeScanToClipboardBottomBar(
+                    navController = navController
+                )
+            }) {
+                val paddingValues = object : PaddingValues {
                     override fun calculateTopPadding(): Dp = it.calculateTopPadding()
                     override fun calculateBottomPadding(): Dp = 0.dp
                     override fun calculateLeftPadding(layoutDirection: LayoutDirection): Dp =
@@ -112,45 +121,25 @@ fun CodeScanToClipboardScreen(
 
                     override fun calculateRightPadding(layoutDirection: LayoutDirection): Dp =
                         it.calculateRightPadding(layoutDirection)
-                })
+                }
+                CodeScanToClipboardNavHost(
+                    navController = navController,
+                    viewModel = viewModel,
+                    root = root,
+                    modifier = Modifier
+                        .weight(1.0F)
+                        .padding(paddingValues = paddingValues)
+                )
+            }
         }
-    }
-}
-
-@Composable
-fun CodeScanToClipboardContent(
-    navController: NavHostController,
-    useNavigationRail: Boolean,
-    viewModel: CodeScanToClipboardViewModel,
-    root: DecoratedBarcodeView,
-    paddingValues: PaddingValues
-) {
-    val state by viewModel.uiState.collectAsState()
-    val callback = {
-        viewModel.setShowScanImageFileError(showScanFromFileError = false)
-    }
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues = paddingValues)
-    ) {
-        if (useNavigationRail) CodeScanToClipboardNavigationRail(
-            navController = navController
-        )
-        CodeScanToClipboardNavHost(
-            navController = navController,
-            viewModel = viewModel,
-            root = root,
-            modifier = Modifier.weight(1.0F)
-        )
-    }
-    if (state.showScanImageFileError) {
-        AlertDialog(onDismissRequest = { callback() },
-            confirmButton = {
-                TextButton(onClick = { callback() }) { Text(stringResource(id = R.string.ok)) }
-            },
-            title = { Text(text = stringResource(id = R.string.scan_image_file)) },
-            text = { Text(text = stringResource(id = R.string.no_supported_formats_found)) })
+        if (state.showScanImageFileError) {
+            AlertDialog(onDismissRequest = { callback() },
+                confirmButton = {
+                    TextButton(onClick = { callback() }) { Text(stringResource(id = R.string.ok)) }
+                },
+                title = { Text(text = stringResource(id = R.string.scan_image_file)) },
+                text = { Text(text = stringResource(id = R.string.no_supported_formats_found)) })
+        }
     }
 }
 

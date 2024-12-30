@@ -30,7 +30,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
@@ -103,7 +102,9 @@ class CodeScanToClipboardActivity : ComponentActivity() {
                             decoder.isMutableRequired = true
                         }
                     } else {
-                        MediaStore.Images.Media.getBitmap(contentResolver, uri)
+                        @Suppress("DEPRECATION") MediaStore.Images.Media.getBitmap(
+                            contentResolver, uri
+                        )
                     }
                 } catch (_: Exception) {
                     null
@@ -171,11 +172,8 @@ class CodeScanToClipboardActivity : ComponentActivity() {
         }
 
         setContent {
-            val windowSizeClass = calculateWindowSizeClass(this)
-            val useNavigationRail = windowSizeClass.widthSizeClass > WindowWidthSizeClass.Compact
-            CompositionLocalProvider(LocalWindowSizeClass provides windowSizeClass) {
+            CompositionLocalProvider(LocalWindowSizeClass provides calculateWindowSizeClass(this)) {
                 CodeScanToClipboardScreen(
-                    useNavigationRail = useNavigationRail,
                     viewModel = viewModel,
                     root = root,
                     shareCallback = ::share,
