@@ -103,7 +103,7 @@ fun CreatorScreen(
                                 viewModel.setFormatIndex(index)
                             }, selected = index == state.formatIndex
                         ) {
-                            Text(label)
+                            Text(text = label, maxLines = 1)
                         }
                     }
                 }
