@@ -4,11 +4,17 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -18,17 +24,30 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -37,7 +56,7 @@ import eu.thomaskuenneth.codescantoclipboard.CodeScanToClipboardViewModel
 import eu.thomaskuenneth.codescantoclipboard.LocalWindowSizeClass
 import eu.thomaskuenneth.codescantoclipboard.R
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun CreatorScreen(
     viewModel: CodeScanToClipboardViewModel,
@@ -48,65 +67,89 @@ fun CreatorScreen(
         stringResource(id = R.string.qrcode),
         stringResource(id = R.string.ean13),
         stringResource(id = R.string.aztec),
+        stringResource(id = R.string.data_matrix),
     )
     val callback = { viewModel.setGeneratorExceptionMessage("") }
+    val scrollState = rememberScrollState()
+    var scrollPosition by remember { mutableIntStateOf(0) }
     with(state) {
         Box {
+            LocalWindowSizeClass.current.heightSizeClass.let {
+                LaunchedEffect(scrollPosition) {
+                    if (it != WindowHeightSizeClass.Expanded) {
+                        scrollState.animateScrollTo(scrollPosition)
+                    }
+                }
+            }
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(all = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                modifier = Modifier.verticalScroll(scrollState)
             ) {
-                val imeAction = if (!viewModel.canGenerate()) ImeAction.Next else ImeAction.Done
+                val imeAction = if (viewModel.canGenerate()) ImeAction.Done else ImeAction.Next
                 val widthAndHeight: @Composable () -> Unit = {
                     ValidatingTextField(value = width,
                         resId = R.string.width_in_pixel,
                         message = if (viewModel.isWidthError()) stringResource(id = R.string.range_hint) else "",
                         imeAction = imeAction,
-                        onValueChange = { viewModel.setWidth(it) })
+                        onValueChange = { viewModel.setWidth(it) }) { scrollPosition = it }
                     ValidatingTextField(value = height,
                         resId = R.string.height_in_pixel,
                         imeAction = imeAction,
                         message = if (viewModel.isHeightError()) stringResource(id = R.string.range_hint) else "",
-                        onValueChange = { viewModel.setHeight(it) })
+                        onValueChange = { viewModel.setHeight(it) }) { scrollPosition = it }
                 }
-                if (LocalWindowSizeClass.current.widthSizeClass != WindowWidthSizeClass.Compact) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    if (LocalWindowSizeClass.current.widthSizeClass != WindowWidthSizeClass.Compact) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            widthAndHeight()
+                        }
+                    } else {
                         widthAndHeight()
                     }
-                } else {
-                    widthAndHeight()
-                }
-                ValidatingTextField(
-                    value = code,
-                    onValueChange = { viewModel.setCode(it) },
-                    resId = R.string.code,
-                    message = if (viewModel.isCodeError()) stringResource(
-                        when (state.formatIndex) {
-                            1 -> R.string.must_be_12_or_13_digits
-                            else -> R.string.cannot_be_empty
-                        }
-                    )
-                    else "",
-                    keyboardType = KeyboardType.Ascii,
-                    imeAction = imeAction,
-                )
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-                    options.forEachIndexed { index, label ->
-                        SegmentedButton(
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index, count = options.size
-                            ), onClick = {
-                                viewModel.setFormatIndex(index)
-                            }, selected = index == state.formatIndex
-                        ) {
-                            Text(text = label, maxLines = 1)
+                    ValidatingTextField(
+                        value = code,
+                        onValueChange = { viewModel.setCode(it) },
+                        resId = R.string.code,
+                        message = if (viewModel.isCodeError()) stringResource(
+                            when (state.formatIndex) {
+                                1 -> R.string.must_be_12_or_13_digits
+                                else -> R.string.cannot_be_empty
+                            }
+                        )
+                        else "",
+                        keyboardType = KeyboardType.Ascii,
+                        imeAction = imeAction,
+                    ) { scrollPosition = it }
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier
+                            .align(alignment = Alignment.CenterHorizontally)
+                            .navigationBarsPadding()
+                    ) {
+                        options.forEachIndexed { index, label ->
+                            SegmentedButton(
+                                modifier = Modifier.wrapContentSize(),
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index, count = options.size
+                                ), onClick = {
+                                    viewModel.setFormatIndex(index)
+                                }, selected = index == state.formatIndex
+                            ) {
+                                Box(
+                                    modifier = Modifier.height(48.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(text = label, style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
                         }
                     }
                 }
+                Spacer(modifier = Modifier.imePadding())
             }
             if (viewModel.canGenerate()) {
                 FloatingActionButton(
@@ -138,6 +181,7 @@ fun CreatorScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ValidatingTextField(
     value: String,
@@ -146,12 +190,25 @@ fun ValidatingTextField(
     message: String = "",
     keyboardType: KeyboardType = KeyboardType.Number,
     imeAction: ImeAction = ImeAction.Default,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    requestScrollTo: (Int) -> Unit
 ) {
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    var y by remember { mutableIntStateOf(0) }
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier,
+        modifier = modifier
+            .focusRequester(focusRequester)
+            .onGloballyPositioned {
+                y = it.positionInParent().y.toInt()
+            }
+            .onFocusChanged {
+                if (it.hasFocus) {
+                    requestScrollTo(y)
+                }
+            },
         singleLine = true,
         label = {
             Text(text = stringResource(id = resId))
@@ -159,5 +216,10 @@ fun ValidatingTextField(
         isError = message.isNotEmpty(),
         supportingText = { Text(text = message) },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
+        keyboardActions = KeyboardActions(onNext = {
+            focusManager.moveFocus(FocusDirection.Next)
+        }, onDone = {
+            focusManager.clearFocus()
+        }),
     )
 }

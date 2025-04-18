@@ -23,4 +23,5 @@
     <string name="qrcode" translatable="false">QR code</string>
     <string name="ean13" translatable="false">EAN-13</string>
     <string name="aztec" translatable="false">Aztec Code</string>
+    <string name="data_matrix" translatable="false">Data Matrix</string>
 </resources>
