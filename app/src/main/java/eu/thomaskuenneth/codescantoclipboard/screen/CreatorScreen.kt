@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -128,7 +127,6 @@ fun CreatorScreen(
                     SingleChoiceSegmentedButtonRow(
                         modifier = Modifier
                             .align(alignment = Alignment.CenterHorizontally)
-                            .navigationBarsPadding()
                     ) {
                         options.forEachIndexed { index, label ->
                             SegmentedButton(
@@ -140,7 +138,6 @@ fun CreatorScreen(
                                 }, selected = index == state.formatIndex
                             ) {
                                 Box(
-                                    modifier = Modifier.height(48.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(text = label, style = MaterialTheme.typography.bodySmall)
