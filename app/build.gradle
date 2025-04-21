@@ -8,9 +8,9 @@ android {
     defaultConfig {
         applicationId "eu.thomaskuenneth.codescantoclipboard"
         minSdk 28
-        targetSdk 35
-        versionCode 18
-        versionName "1.3.4"
+        targetSdk 36
+        versionCode 19
+        versionName "1.3.5"
         vectorDrawables {
             useSupportLibrary true
         }
