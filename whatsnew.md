@@ -1,4 +1,4 @@
-### v1.3.5
+### v1.3.7
 
-- Supports Android 16
-- Monochrome app icon added
+- Library and tools upgrades
+- More Material 3 Expressive

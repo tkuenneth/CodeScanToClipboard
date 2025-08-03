@@ -16,3 +16,4 @@ compiler.xml
 runConfigurations.xml
 emulatorDisplays.xml
 detekt.xml
+deviceManager.xml
