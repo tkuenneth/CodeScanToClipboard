@@ -11,23 +11,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonGroup
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ButtonGroupMenuState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -55,7 +56,10 @@ import eu.thomaskuenneth.codescantoclipboard.CodeScanToClipboardViewModel
 import eu.thomaskuenneth.codescantoclipboard.LocalWindowSizeClass
 import eu.thomaskuenneth.codescantoclipboard.R
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 fun CreatorScreen(
     viewModel: CodeScanToClipboardViewModel,
@@ -85,12 +89,14 @@ fun CreatorScreen(
             ) {
                 val imeAction = if (viewModel.canGenerate()) ImeAction.Done else ImeAction.Next
                 val widthAndHeight: @Composable () -> Unit = {
-                    ValidatingTextField(value = width,
+                    ValidatingTextField(
+                        value = width,
                         resId = R.string.width_in_pixel,
                         message = if (viewModel.isWidthError()) stringResource(id = R.string.range_hint) else "",
                         imeAction = imeAction,
                         onValueChange = { viewModel.setWidth(it) }) { scrollPosition = it }
-                    ValidatingTextField(value = height,
+                    ValidatingTextField(
+                        value = height,
                         resId = R.string.height_in_pixel,
                         imeAction = imeAction,
                         message = if (viewModel.isHeightError()) stringResource(id = R.string.range_hint) else "",
@@ -124,25 +130,36 @@ fun CreatorScreen(
                         keyboardType = KeyboardType.Ascii,
                         imeAction = imeAction,
                     ) { scrollPosition = it }
-                    SingleChoiceSegmentedButtonRow(
-                        modifier = Modifier
-                            .align(alignment = Alignment.CenterHorizontally)
+                    val overflowMenuButton: @Composable (ButtonGroupMenuState) -> Unit =
+                        { menuState ->
+                            FilledIconButton(
+                                onClick = {
+                                    if (menuState.isExpanded) {
+                                        menuState.dismiss()
+                                    } else {
+                                        menuState.show()
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.MoreVert,
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                    ButtonGroup(
+                        overflowIndicator = overflowMenuButton,
+                        modifier = Modifier.align(alignment = Alignment.CenterHorizontally),
+                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
                     ) {
                         options.forEachIndexed { index, label ->
-                            SegmentedButton(
-                                modifier = Modifier.wrapContentSize(),
-                                shape = SegmentedButtonDefaults.itemShape(
-                                    index = index, count = options.size
-                                ), onClick = {
+                            toggleableItem(
+                                onCheckedChange = {
                                     viewModel.setFormatIndex(index)
-                                }, selected = index == state.formatIndex
-                            ) {
-                                Box(
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(text = label, style = MaterialTheme.typography.bodySmall)
-                                }
-                            }
+                                },
+                                checked = index == state.formatIndex,
+                                label = label
+                            )
                         }
                     }
                 }
@@ -166,7 +183,8 @@ fun CreatorScreen(
             }
         }
         if (state.generatorExceptionMessage.isNotEmpty()) {
-            AlertDialog(onDismissRequest = callback,
+            AlertDialog(
+                onDismissRequest = callback,
                 confirmButton = {
                     Button(onClick = callback) {
                         Text(text = stringResource(id = R.string.ok))
