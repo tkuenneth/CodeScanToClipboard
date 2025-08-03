@@ -6,9 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -18,19 +15,20 @@ import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -40,7 +38,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -79,6 +76,7 @@ sealed class CodeScanToClipboardScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CodeScanToClipboardScreen(
     viewModel: CodeScanToClipboardViewModel,
@@ -86,7 +84,7 @@ fun CodeScanToClipboardScreen(
     shareCallback: (String) -> Unit,
     scanImageFileCallback: () -> Unit
 ) {
-    MaterialTheme(
+    MaterialExpressiveTheme(
         colorScheme = defaultColorScheme()
     ) {
         val useNavigationRail =
@@ -96,34 +94,37 @@ fun CodeScanToClipboardScreen(
         val callback = {
             viewModel.setShowScanImageFileError(showScanFromFileError = false)
         }
-        Row(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            if (useNavigationRail) CodeScanToClipboardNavigationRail(
-                navController = navController
-            )
-            Scaffold(topBar = {
+        Scaffold(
+            topBar = {
                 CodeScanToClipboardTopAppBar(
                     viewModel = viewModel,
                     shareCallback = shareCallback,
                     scanImageFileCallback = scanImageFileCallback
                 )
-            }, bottomBar = {
+            },
+            bottomBar = {
                 if (!useNavigationRail) CodeScanToClipboardBottomBar(
                     navController = navController
                 )
             }) {
-                val paddingValues = object : PaddingValues {
-                    override fun calculateTopPadding(): Dp = it.calculateTopPadding()
-                    override fun calculateBottomPadding(): Dp =
-                        if (useNavigationRail) 0.dp else it.calculateBottomPadding()
+            val paddingValues = object : PaddingValues {
+                override fun calculateTopPadding(): Dp = it.calculateTopPadding()
+                override fun calculateBottomPadding(): Dp =
+                    if (useNavigationRail) 0.dp else it.calculateBottomPadding()
 
-                    override fun calculateLeftPadding(layoutDirection: LayoutDirection): Dp =
-                        it.calculateLeftPadding(layoutDirection)
+                override fun calculateLeftPadding(layoutDirection: LayoutDirection): Dp =
+                    if (!useNavigationRail) it.calculateLeftPadding(layoutDirection) else 0.dp
 
-                    override fun calculateRightPadding(layoutDirection: LayoutDirection): Dp =
-                        it.calculateRightPadding(layoutDirection)
-                }
+                override fun calculateRightPadding(layoutDirection: LayoutDirection): Dp =
+                    it.calculateRightPadding(layoutDirection)
+            }
+            Row(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                if (useNavigationRail) CodeScanToClipboardNavigationRail(
+                    navController = navController
+                )
+
                 CodeScanToClipboardNavHost(
                     navController = navController,
                     viewModel = viewModel,
@@ -133,14 +134,15 @@ fun CodeScanToClipboardScreen(
                         .padding(paddingValues = paddingValues)
                 )
             }
-        }
-        if (state.showScanImageFileError) {
-            AlertDialog(onDismissRequest = { callback() },
-                confirmButton = {
-                    TextButton(onClick = { callback() }) { Text(stringResource(id = R.string.ok)) }
-                },
-                title = { Text(text = stringResource(id = R.string.scan_image_file)) },
-                text = { Text(text = stringResource(id = R.string.no_supported_formats_found)) })
+            if (state.showScanImageFileError) {
+                AlertDialog(
+                    onDismissRequest = { callback() },
+                    confirmButton = {
+                        TextButton(onClick = { callback() }) { Text(stringResource(id = R.string.ok)) }
+                    },
+                    title = { Text(text = stringResource(id = R.string.scan_image_file)) },
+                    text = { Text(text = stringResource(id = R.string.no_supported_formats_found)) })
+            }
         }
     }
 }
@@ -156,39 +158,41 @@ fun CodeScanToClipboardTopAppBar(
     val scannerUiState by viewModel.scannerUiState.collectAsState()
     val flashOn = scannerUiState.flashOn
     val lastScannedText = scannerUiState.lastScannedText
-    CenterAlignedTopAppBar(title = {
-        Text(
-            text = stringResource(id = R.string.app_name),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }, actions = {
-        if (state.showScannerActions) {
-            IconButtonWithTooltip(
-                onClick = { viewModel.toggleFlash() },
-                painter = painterResource(id = if (flashOn) R.drawable.baseline_flash_on_24 else R.drawable.baseline_flash_off_24),
-                contentDescription = stringResource(id = if (flashOn) R.string.flash_on else R.string.flash_off)
+    TopAppBar(
+        title = {
+            Text(
+                text = stringResource(id = R.string.app_name),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-            if (lastScannedText.isNotEmpty()) {
+        },
+        actions = {
+            if (state.showScannerActions) {
                 IconButtonWithTooltip(
-                    onClick = {
-                        shareCallback(lastScannedText)
-                        viewModel.clearLastScannedText()
-                    },
-                    painter = painterResource(id = R.drawable.baseline_share_24),
-                    contentDescription = stringResource(id = R.string.share)
+                    onClick = { viewModel.toggleFlash() },
+                    painter = painterResource(id = if (flashOn) R.drawable.baseline_flash_on_24 else R.drawable.baseline_flash_off_24),
+                    contentDescription = stringResource(id = if (flashOn) R.string.flash_on else R.string.flash_off)
                 )
-                IconButtonWithTooltip(
-                    onClick = { viewModel.clearLastScannedText() },
-                    painter = painterResource(id = R.drawable.baseline_clear_24),
-                    contentDescription = stringResource(id = R.string.clear)
-                )
+                if (lastScannedText.isNotEmpty()) {
+                    IconButtonWithTooltip(
+                        onClick = {
+                            shareCallback(lastScannedText)
+                            viewModel.clearLastScannedText()
+                        },
+                        painter = painterResource(id = R.drawable.baseline_share_24),
+                        contentDescription = stringResource(id = R.string.share)
+                    )
+                    IconButtonWithTooltip(
+                        onClick = { viewModel.clearLastScannedText() },
+                        painter = painterResource(id = R.drawable.baseline_clear_24),
+                        contentDescription = stringResource(id = R.string.clear)
+                    )
+                }
             }
-        }
-        OptionsMenu(
-            showScannerActions = state.showScannerActions, onClick = scanImageFileCallback
-        )
-    })
+            OptionsMenu(
+                showScannerActions = state.showScannerActions, onClick = scanImageFileCallback
+            )
+        })
 }
 
 @Composable
@@ -197,7 +201,8 @@ fun CodeScanToClipboardBottomBar(navController: NavHostController) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination
         CodeScanToClipboardScreen.screens.forEach { screen ->
-            NavigationBarItem(selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+            NavigationBarItem(
+                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                 onClick = {
                     navController.navigate(screen.route) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -257,17 +262,11 @@ fun CodeScanToClipboardNavigationRail(navController: NavHostController) {
         val currentDestination = navBackStackEntry?.destination
         Column(
             modifier = Modifier
-                .fillMaxHeight()
-                .padding(
-                    start = WindowInsets.displayCutout
-                        .asPaddingValues()
-                        .calculateLeftPadding(
-                            LocalLayoutDirection.current
-                        )
-                ), verticalArrangement = Arrangement.Center
+                .fillMaxHeight(), verticalArrangement = Arrangement.Center
         ) {
             CodeScanToClipboardScreen.screens.forEach { screen ->
-                NavigationRailItem(selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                NavigationRailItem(
+                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                     onClick = {
                         navController.navigate(screen.route) {
                             popUpTo(navController.graph.findStartDestination().id) {
