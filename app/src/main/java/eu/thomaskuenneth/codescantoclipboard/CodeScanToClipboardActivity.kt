@@ -35,6 +35,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.unit.DpSize
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -223,7 +224,7 @@ class CodeScanToClipboardActivity : ComponentActivity() {
                 val pendingIntent = PendingIntent.getActivity(
                     context,
                     0,
-                    Intent(Intent.ACTION_VIEW, Uri.parse(text)),
+                    Intent(Intent.ACTION_VIEW, text.toUri()),
                     PendingIntent.FLAG_IMMUTABLE
                 )
                 val customAction = ChooserAction.Builder(
