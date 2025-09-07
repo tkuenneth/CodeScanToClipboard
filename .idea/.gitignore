@@ -17,3 +17,4 @@ runConfigurations.xml
 emulatorDisplays.xml
 detekt.xml
 deviceManager.xml
+appInsightsSettings.xml
