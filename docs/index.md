@@ -2,14 +2,6 @@
 layout: home
 ---
 
-<table style="width: 100%; border: none">
-<tr style="background-color: transparent;">
-<td align="center" style="border: none">
-<strong>About</strong>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<a href="privacy.html">Privacy Policy</a>
-</td>
-</tr>
-</table>
-
 <p><strong>Code Scan To Clipboard</strong> scans barcodes and QR codes and copies the result to the clipboard. It is intentionally kept simple, but has a few cool features:</p>
 
 <ul>
