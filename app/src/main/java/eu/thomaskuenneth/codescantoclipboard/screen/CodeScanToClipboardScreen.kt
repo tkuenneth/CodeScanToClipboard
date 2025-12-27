@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,7 +29,6 @@ import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -59,7 +59,7 @@ import eu.thomaskuenneth.codescantoclipboard.R
 import eu.thomaskuenneth.codescantoclipboard.defaultColorScheme
 
 sealed class CodeScanToClipboardScreen(
-    val route: String, @StringRes val label: Int, val icon: ImageVector
+    val route: String, @param:StringRes val label: Int, val icon: ImageVector
 ) {
     companion object {
         val screens = listOf(
@@ -158,7 +158,7 @@ fun CodeScanToClipboardTopAppBar(
     val scannerUiState by viewModel.scannerUiState.collectAsState()
     val flashOn = scannerUiState.flashOn
     val lastScannedText = scannerUiState.lastScannedText
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = {
             Text(
                 text = stringResource(id = R.string.app_name),
