@@ -134,7 +134,7 @@ fun CreatorScreen(
                         { menuState ->
                             FilledIconButton(
                                 onClick = {
-                                    if (menuState.isExpanded) {
+                                    if (menuState.isShowing) {
                                         menuState.dismiss()
                                     } else {
                                         menuState.show()
@@ -202,10 +202,10 @@ fun ValidatingTextField(
     value: String,
     @StringRes resId: Int,
     onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
     message: String = "",
     keyboardType: KeyboardType = KeyboardType.Number,
     imeAction: ImeAction = ImeAction.Default,
-    modifier: Modifier = Modifier,
     requestScrollTo: (Int) -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
