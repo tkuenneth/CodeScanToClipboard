@@ -28,6 +28,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
@@ -85,7 +86,9 @@ fun CreatorScreen(
                 }
             }
             Column(
-                modifier = Modifier.verticalScroll(scrollState)
+                modifier = Modifier
+                    .verticalScroll(scrollState)
+                    .padding(top = 16.dp)
             ) {
                 val imeAction = if (viewModel.canGenerate()) ImeAction.Done else ImeAction.Next
                 val widthAndHeight: @Composable () -> Unit = {
@@ -130,7 +133,7 @@ fun CreatorScreen(
                         keyboardType = KeyboardType.Ascii,
                         imeAction = imeAction,
                     ) { scrollPosition = it }
-                    val overflowMenuButton: @Composable (ButtonGroupMenuState) -> Unit =
+                    val overflowMenuButton: @Composable (ButtonGroupMenuState) -> Unit = remember {
                         { menuState ->
                             FilledIconButton(
                                 onClick = {
@@ -143,13 +146,13 @@ fun CreatorScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.MoreVert,
-                                    contentDescription = null
+                                    contentDescription = stringResource(id = R.string.options_menu)
                                 )
                             }
                         }
+                    }
                     ButtonGroup(
                         overflowIndicator = overflowMenuButton,
-                        modifier = Modifier.align(alignment = Alignment.CenterHorizontally),
                         horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
                     ) {
                         options.forEachIndexed { index, label ->
@@ -158,7 +161,8 @@ fun CreatorScreen(
                                     viewModel.setFormatIndex(index)
                                 },
                                 checked = index == state.formatIndex,
-                                label = label
+                                label = label,
+                                icon = null
                             )
                         }
                     }
@@ -170,6 +174,8 @@ fun CreatorScreen(
                     onClick = {
                         viewModel.generate()
                     },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier
                         .align(alignment = Alignment.BottomEnd)
                         .padding(all = 16.dp)
@@ -236,5 +242,6 @@ fun ValidatingTextField(
         }, onDone = {
             focusManager.clearFocus()
         }),
+        shape = MaterialTheme.shapes.medium
     )
 }
