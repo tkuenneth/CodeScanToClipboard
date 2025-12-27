@@ -1,6 +1,7 @@
 package eu.thomaskuenneth.codescantoclipboard.screen
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,6 +53,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.thomaskuenneth.codescantoclipboard.CodeScanToClipboardViewModel
 import eu.thomaskuenneth.codescantoclipboard.LocalWindowSizeClass
@@ -153,7 +155,8 @@ fun CreatorScreen(
                     }
                     ButtonGroup(
                         overflowIndicator = overflowMenuButton,
-                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                        expandedRatio = 0f
                     ) {
                         options.forEachIndexed { index, label ->
                             toggleableItem(
@@ -235,7 +238,12 @@ fun ValidatingTextField(
             Text(text = stringResource(id = resId))
         },
         isError = message.isNotEmpty(),
-        supportingText = { Text(text = message) },
+        supportingText = { Text(
+            text = message,
+            maxLines = 1,
+            overflow = TextOverflow.Clip,
+            modifier = Modifier.basicMarquee()
+        ) },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
         keyboardActions = KeyboardActions(onNext = {
             focusManager.moveFocus(FocusDirection.Next)
