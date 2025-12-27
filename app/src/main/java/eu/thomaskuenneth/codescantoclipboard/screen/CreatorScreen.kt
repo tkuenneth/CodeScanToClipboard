@@ -17,13 +17,16 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ButtonGroupMenuState
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
@@ -155,17 +158,57 @@ fun CreatorScreen(
                     }
                     ButtonGroup(
                         overflowIndicator = overflowMenuButton,
-                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                        expandedRatio = 0f
+                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
                     ) {
                         options.forEachIndexed { index, label ->
-                            toggleableItem(
-                                onCheckedChange = {
-                                    viewModel.setFormatIndex(index)
+                            val isSelected = index == state.formatIndex
+                            customItem(
+                                buttonGroupContent = {
+                                    val shape = when (index) {
+                                        0 -> if (isSelected) {
+                                            ButtonGroupDefaults.connectedLeadingButtonPressShape
+                                        } else {
+                                            ButtonGroupDefaults.connectedLeadingButtonShape
+                                        }
+
+                                        options.lastIndex -> if (isSelected) {
+                                            ButtonGroupDefaults.connectedTrailingButtonPressShape
+                                        } else {
+                                            ButtonGroupDefaults.connectedTrailingButtonShape
+                                        }
+
+                                        else -> if (isSelected) {
+                                            ButtonGroupDefaults.connectedMiddleButtonShapes().pressedShape
+                                        } else {
+                                            ButtonGroupDefaults.connectedMiddleButtonShapes().shape
+                                        }
+                                    }
+                                    Button(
+                                        onClick = {
+                                            viewModel.setFormatIndex(index)
+                                        },
+                                        shape = shape,
+                                        colors = if (isSelected) ButtonDefaults.filledTonalButtonColors()
+                                        else ButtonDefaults.outlinedButtonColors(),
+                                        border = if (isSelected) null else ButtonDefaults.outlinedButtonBorder()
+                                    ) {
+                                        Text(label)
+                                    }
                                 },
-                                checked = index == state.formatIndex,
-                                label = label,
-                                icon = null
+                                menuContent = { menuState ->
+                                    DropdownMenuItem(
+                                        text = { Text(label) },
+                                        onClick = {
+                                            viewModel.setFormatIndex(index)
+                                            menuState.dismiss()
+                                        },
+                                        leadingIcon = {
+                                            if (isSelected) {
+                                                Icon(Icons.Default.Check, contentDescription = null)
+                                            }
+                                        }
+                                    )
+                                }
                             )
                         }
                     }
@@ -238,12 +281,14 @@ fun ValidatingTextField(
             Text(text = stringResource(id = resId))
         },
         isError = message.isNotEmpty(),
-        supportingText = { Text(
-            text = message,
-            maxLines = 1,
-            overflow = TextOverflow.Clip,
-            modifier = Modifier.basicMarquee()
-        ) },
+        supportingText = {
+            Text(
+                text = message,
+                maxLines = 1,
+                overflow = TextOverflow.Clip,
+                modifier = Modifier.basicMarquee()
+            )
+        },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
         keyboardActions = KeyboardActions(onNext = {
             focusManager.moveFocus(FocusDirection.Next)

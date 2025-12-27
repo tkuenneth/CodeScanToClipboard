@@ -1,2 +1,3 @@
 - First GitHub Actions-backed release
 - Library and tools upgrades
+- UI refinements
